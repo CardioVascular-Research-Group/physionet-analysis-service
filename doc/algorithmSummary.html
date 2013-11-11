@@ -1,0 +1,62 @@
+<html>
+	<head>
+		<title>Generic Analysis Web Service Test</title>
+	</head>
+	
+	<body>
+	The following table summarizes the ECG analysis algorithms which have been implemented by Bill, Brandon and Mike.</BR>
+	Also listed are algorithms which have been assessed and the current status thereof.
+		<table border=1>
+			<TR bgcolor="lightblue">
+				<TH>Name</TH><TH>Source</TH><TH width="300px">Function</TH><TH>Status</TH><TH>Inputs</TH><TH>Outputs</TH><TH>Options</TH><TH>Output Used By</TH><TH>URL</TH>
+			</TR>
+			<TR bgcolor="lightgreen">
+				<TD>sqrs</TD><TD>Physionet WFDB library</TD><TD>single-channel QRS detector</TD><TD>Deployed</TD><TD>WFDB data files</TD><TD>WFDB Annotation file</BR>Annotation as a text file</TD><TD>6</TD><TD>Visualisation/Annotations</BR>user download</TD><TD><A HREF="http://www.physionet.org/physiotools/wag/sqrs-1.htm">Manual</A></TD>
+			</TR>
+			<TR bgcolor="lightgreen">
+				<TD>sigamp</TD><TD>Physionet WFDB library</TD><TD>measure signal amplitudes of a WFDB record </TD><TD>Deployed</TD><TD>WFDB data files</TD><TD>tab delimited text file</TD><TD>16</TD><TD>user download</TD><TD><A HREF="http://www.physionet.org/physiotools/wag/sigamp-1.htm">Manual</A></TD>
+			</TR>
+			<TR bgcolor="lightgreen">
+				<TD>rdsamp</TD><TD>Physionet WFDB library</TD><TD>reads a WFDB file and writes it in human readable format</TD><TD>Deployed</TD><TD>WFDB data files</TD><TD>tab delimited text file</TD><TD>17</TD><TD>user download</TD><TD><A HREF="http://www.physionet.org/physiotools/wag/rdsamp-1.htm">Manual</A></TD>
+			</TR>
+			<TR bgcolor="palegreen">
+				<TD>Berger*</TD><TD>Paper</TD><TD>measures Beat-to-beat QT interval variability?</TD><TD>Deployed</BR>but unused</TD><TD>RDT data files</BR>RDT annotation files</TD><TD>Spreadsheet file</TD><TD>none</TD><TD>user download</TD><TD><A HREF="http://www.ncbi.nlm.nih.gov/pubmed/9315547?ordinalpos=81&itool=EntrezSystem2.PEntrez.Pubmed.Pubmed_ResultsPanel.Pubmed_DefaultReportPanel.Pubmed_RVDocSum">Paper</A></TD>
+			</TR>
+			<TR bgcolor="lightgreen">
+				<TD>Chesnokov V1*</TD><TD>Physionet Challenge 2006</TD><TD>single-channel QRS detector, looped thru all channels</TD><TD>Deployed</TD>
+				<TD>WFDB data files</TD><TD>Spreadsheet file</TD><TD>none</TD><TD>user download</TD>
+				<TD><A HREF="http://physionet.org/challenge/2006/">Overview</A></BR><A HREF="http://physionet.org/challenge/2006/sources/yuriy-chesnokov/">Code</A></TD>
+			</TR>
+			<TR bgcolor="lightgreen">
+				<TD>QRSscore*</TD><TD>Dr. David Strauss' paper</TD><TD>quantifies myocardial scar in the presence of normal and abnormal ventricular conduction.</TD><TD>Deployed</TD><TD>GE Magellan attribute file</TD><TD>Spreadsheet file</TD><TD>none</TD><TD>user download</TD><TD><A HREF="http://www.ncbi.nlm.nih.gov/pubmed/18790501">Paper</A></TD>
+			</TR>
+			
+			<TR bgcolor="yellow">
+				<TD>wrsamp</TD><TD>Physionet WFDB library</TD><TD>reads text-format input and writes the specified columns in WFDB signal file</TD><TD>Testing</TD><TD>text-format input file</TD><TD>WFDB header file</BR>WFDB data file</TD><TD>15</TD><TD>many other analysis</BR>user download</TD><TD><A HREF="http://www.physionet.org/physiotools/wag/wrsamp-1.htm">Manual</A></TD>
+			</TR>
+			<TR bgcolor="yellow">
+				<TD>Chesnokov V2</TD><TD>Yuriy Chesnokov</TD><TD>single-channel QRS detector, optimized code</TD><TD>Reviewed</TD>
+				<TD>WFDB data files</TD><TD>Spreadsheet file</TD><TD>4</TD><TD>user download</TD>
+				<TD><A HREF="http://physionet.org/challenge/2006/">Overview</A></BR><A HREF="http://physionet.org/challenge/2006/sources/yuriy-chesnokov/">Code</A></TD>
+			</TR>
+			<TR bgcolor="yellow">
+				<TD>pschart</TD><TD>Physionet WFDB library</TD><TD>produce annotated ‘chart recordings’ on a PostScript device</TD><TD>Interesting</TD><TD>WFDB data file</TD><TD>PostScript file</TD><TD>36</TD><TD>user download</TD><TD><A HREF="http://physionet.org/physiotools/wag/pschar-1.htm">Manual</A></TD>
+			</TR>
+			<TR bgcolor="yellow">
+				<TD>psfd</TD><TD>Physionet WFDB library</TD><TD>produce annotated ‘full-disclosure’ plots on a PostScript device</TD><TD>Interesting</TD><TD>WFDB data file</TD><TD>PostScript file</TD><TD>15</TD><TD>user download</TD><TD><A HREF="http://physionet.org/physiotools/wag/psfd-1.htm">Manual</A></TD>
+			</TR>
+			<TR bgcolor="yellow">
+				<TD>mrgann</TD><TD>Physionet WFDB library</TD><TD>merge a pair of annotation files</TD><TD>Interesting</TD><TD>2 WFDB annotation files</TD><TD>WFDB annotation file</TD><TD>8</TD><TD>Any analysis which<BR>generates annotations</TD><TD><A HREF="http://physionet.org/physiotools/wag/mrgann-1.htm">Manual</A></TD>
+			</TR>
+			<TR bgcolor="yellow">
+				<TD>wfdbdesc </TD><TD>Physionet WFDB library</TD><TD>reads specifications for the signals described in the header file</TD><TD>Interesting</TD><TD>WFDB data files</TD><TD>WFDB header file</BR>WFDB data file</TD><TD>1</TD><TD>online display</BR>user download</TD><TD><A HREF=http://physionet.org/physiotools/wag/wfdbde-1.htm">Manual</A></TD>
+			</TR>
+
+			<TR bgcolor="pink">
+				<TD>ecgpuwave</TD><TD>Physionet raw code<br>Matlab 2010a or Fortran77</TD><TD>QRS detector and waveform limit locator</TD><TD>Source<br>obsolete</TD><TD>WFDB data files</TD><TD>n/a</TD><TD>5</TD><TD>required for four 2006<BR>and one 2008 Challenge</TD><TD><A HREF="http://www.physionet.org/physiotools/ecgpuwave/">Manual</A></TD>
+			</TR>
+
+		</table>
+		* Berger, Chesnokov V1, and QRSscore algorithms are coded as custom web services, the remainder will use the generic, semi-automated web service framework.
+	</body>
+</html>

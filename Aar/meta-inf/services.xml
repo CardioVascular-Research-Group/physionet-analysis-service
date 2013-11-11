@@ -1,0 +1,18 @@
+<serviceGroup>
+	<service name="physionetAnalysisService" scope="application">
+		<messageReceivers>
+			<messageReceiver mep="http://www.w3.org/2004/08/wsdl/in-out" class="org.apache.axis2.receivers.RawXMLINOutMessageReceiver" />
+		</messageReceivers>
+		<parameter name="ServiceClass" locked="false">
+			edu.jhu.cvrg.services.physionetAnalysisService.Physionet
+		</parameter>
+		<operation name="getAlgorithmDetails" mep="http://www.w3.org/2004/08/wsdl/in-out">
+			<actionMapping>
+				http://localhost:8080/axis2/services/physionetAnalysisService
+			</actionMapping>
+		</operation>
+		<operation name="getVersion">
+			<messageReceiver class="org.apache.axis2.rpc.receivers.RPCMessageReceiver"/>
+		</operation>
+	</service>
+</serviceGroup>

@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+
+<project name="physionetAnalysisService" basedir="." default="deployAnalysisService">
+	
+	<property name="projectName" value="nodeConversionService"/>
+	
+	<property name="liferay" value="/opt/liferay" />
+	<property name="liferay-sdk" value="${liferay}/liferay-plugins-sdk-6.1.1"/>
+	
+	<property file="${liferay-sdk}/build.${user.name}.properties" />
+	
+	<property name="portlet-ext" value="/opt/liferay/portlet-ext"/>
+	<property name="axis2deployFolder" value="${app.server.dir}/webapps/axis2/WEB-INF/services"/>
+
+	<property name="dependencies" value="${liferay}/projects-dependencies" />
+		
+	<path id="project-classpath">
+		<fileset dir="${dependencies}/${ant.project.name}-dependencies">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="copyDependenciesToServer">
+		<copy todir="${app.server.dir}/webapps/axis2/WEB-INF/lib">
+			<fileset dir="${dependencies}/${ant.project.name}-dependencies">
+				<include name="*.jar"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="cleanAll">
+		<echo>Clean the temporary area</echo>
+		<delete dir="build"/>
+	</target>
+	
+	<target name="compileService" depends="cleanAll">
+
+		<!-- DROPBOX FEATURE
+		<mkdir dir="${dependencies}"/>
+        <mkdir dir="${dependencies}/${ant.project.name}-dependencies"/>
+    	<copy todir="${dependencies}/${ant.project.name}-dependencies">
+    		<fileset dir="${dropbox.home}/jars/projects-dependencies/${ant.project.name}-dependencies">
+				<include name="*.jar"/>    		
+    		</fileset>
+    	</copy>
+    	-->
+		
+		<echo>Create the temporary area</echo>
+		<mkdir dir="build"/>
+		<mkdir dir="build/class"/>
+		
+		<javac target="1.5" classpathref="project-classpath" srcdir="src" includes="edu/**/serviceDescriptionData/*" destdir="build/class" debug="true"/>
+		<javac target="1.5" classpathref="project-classpath" srcdir="src" includes="edu/**/${projectName}/**" excludes="edu/**/${projectName}/**/test/*" destdir="build/class" debug="true"/>
+		
+		<jar destfile="Aar/${projectName}.aar" basedir="build/class">
+			<metainf dir="Aar/meta-inf" />
+			<include name="**/**"/>
+		</jar>
+		
+		<antcall target="cleanAll" />
+	</target>
+	
+	<target name="deployService">
+		
+		<copy todir="${axis2deployFolder}">
+			<fileset dir="Aar">
+				<include name="${projectName}.aar"/>
+			</fileset>
+		</copy>
+		<echo>Project ${projectName} deployed!</echo>
+		<echo>Please add the ${projectName}.aar reference on the ${axis2deployFolder}/services.list</echo>
+	</target>
+
+	
+	
+	<target name="compileAnalysisService">
+		<antcall target="compileService">
+			<param name="projectName" value="physionetAnalysisService"/>
+		</antcall>
+	</target>
+	
+	<target name="deployAnalysisService" depends="compileAnalysisService">
+		<antcall target="deployService">
+			<param name="projectName" value="physionetAnalysisService"/>
+		</antcall>
+	</target>
+		
+</project>
