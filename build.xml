@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
 
-<project name="physionetAnalysisService" basedir="." default="deployAnalysisService">
+<project name="physionet-analysis-service" basedir="." default="deployAnalysisService">
 	
 	<property name="projectName" value="nodeConversionService"/>
 	
@@ -36,15 +36,15 @@
 	
 	<target name="compileService" depends="cleanAll">
 
-		<!-- DROPBOX FEATURE
+		<!--
 		<mkdir dir="${dependencies}"/>
         <mkdir dir="${dependencies}/${ant.project.name}-dependencies"/>
     	<copy todir="${dependencies}/${ant.project.name}-dependencies">
     		<fileset dir="${dropbox.home}/jars/projects-dependencies/${ant.project.name}-dependencies">
 				<include name="*.jar"/>    		
     		</fileset>
-    	</copy>
-    	-->
+    	</copy> -->
+    	
 		
 		<echo>Create the temporary area</echo>
 		<mkdir dir="build"/>
@@ -52,6 +52,8 @@
 		
 		<javac target="1.5" classpathref="project-classpath" srcdir="src" includes="edu/**/serviceDescriptionData/*" destdir="build/class" debug="true"/>
 		<javac target="1.5" classpathref="project-classpath" srcdir="src" includes="edu/**/${projectName}/**" excludes="edu/**/${projectName}/**/test/*" destdir="build/class" debug="true"/>
+		
+		<copy file="src/resources/chesnokov_datatable.xsl" todir="build/class/edu/jhu/cvrg/services/physionetAnalysisService/wrapper/" />
 		
 		<jar destfile="Aar/${projectName}.aar" basedir="build/class">
 			<metainf dir="Aar/meta-inf" />

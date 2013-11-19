@@ -1,6 +1,7 @@
 package edu.jhu.cvrg.services.physionetAnalysisService;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.llom.util.AXIOMUtil;
@@ -10,6 +11,7 @@ import com.thoughtworks.xstream.XStream;
 
 import edu.jhu.cvrg.services.physionetAnalysisService.lookup.AlgorithmDetailLookup;
 import edu.jhu.cvrg.services.physionetAnalysisService.serviceDescriptionData.AlgorithmServiceData;
+import edu.jhu.cvrg.waveform.model.PhysionetMethods;
 
 /** A collection of methods for building a generic Web Service to wrap around an arbitrary analysis algorithm..
  * 
@@ -18,14 +20,7 @@ import edu.jhu.cvrg.services.physionetAnalysisService.serviceDescriptionData.Alg
  */
 public class Physionet {
 	
-	/** local filesystem's root output directory analysis routine, in case it has different permissions than the web service <BR>e.g. /opt/apache-tomcat-6.0.32/webapps **/
-	private String localAnalysisOutputRoot = "/export/icmv058/execute/";  
-	
-	/** local filesystem's root directory for web pages files, <BR>e.g. /opt/apache-tomcat-6.0.32/webapps **/
-	private String localOutputRoot = "/export/icmv058/cvrgftp/";  
-
-	private boolean verbose = true;
-	protected final Logger log = Logger.getLogger(getClass().getName());
+	private Logger log = Logger.getLogger(getClass().getName());
 	
 	/** For testing of service.
 	 * @return version and usage text.
@@ -55,8 +50,7 @@ public class Physionet {
 			debugPrintln("paramMap.get(\"verbose\") " + (String) paramMap.get("verbose"));
 			Boolean bVerbose    = Boolean.parseBoolean((String) paramMap.get("verbose"));
 			
-			this.verbose = bVerbose;
-			System.out.println("++ verbose set to :" + bVerbose);
+			log.info("++ verbose set to :" + bVerbose);
 			//************* Calls the wrapper of the analysis algorithm. *********************
 			AlgorithmDetailLookup details = new AlgorithmDetailLookup();
 			details.verbose = bVerbose;
@@ -64,8 +58,7 @@ public class Physionet {
 			xml = details.loadCannedData();
 			debugPrintln("++ xml.length:" + xml.length());
 		} catch (Exception e) {
-			e.printStackTrace();
-			log.error("getAlgorithmDetails2 failed.");
+			log.error("getAlgorithmDetails2 failed." + e.getMessage());
 		}
 		
 		OMElement payload = AXIOMUtil.stringToOM(xml);
@@ -81,7 +74,7 @@ public class Physionet {
 	 */
 	public org.apache.axiom.om.OMElement getAlgorithmDetailsBroken(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		System.out.println("Physionet.getAlgorithmDetails() started.");
+		log.info("Physionet.getAlgorithmDetails() started.");
 		
 		AnalysisUtils util = new AnalysisUtils();
 		
@@ -94,8 +87,7 @@ public class Physionet {
 			debugPrintln("paramMap.get(\"verbose\") " + (String) paramMap.get("verbose"));
 			Boolean bVerbose    = Boolean.parseBoolean((String) paramMap.get("verbose"));
 			
-			this.verbose = bVerbose;
-			System.out.println("++ verbose set to :" + bVerbose);
+			log.info("++ verbose set to :" + bVerbose);
 			//************* Calls the wrapper of the analysis algorithm. *********************
 			AlgorithmDetailLookup details = new AlgorithmDetailLookup();
 			details.verbose = bVerbose;
@@ -123,8 +115,7 @@ public class Physionet {
 				xml = xstream.toXML(error); 
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			log.error("getAlgorithmDetails2 failed.");
+			log.error("getAlgorithmDetails2 failed." + e.getMessage());
 		}
 		
 		OMElement payload = AXIOMUtil.stringToOM(xml);
@@ -227,16 +218,37 @@ public class Physionet {
 		return callWrapper(param0, PhysionetMethods.CHESNOKOV);	
 	}
 	
+	public org.apache.axiom.om.OMElement performAnalysis(org.apache.axiom.om.OMElement e) throws Exception {
+		AnalysisUtils util = new AnalysisUtils();
+		
+		
+		Set<AnalysisVO> jobs = util.extractToAnalysisObject(e);
+		
+		ThreadGroup trdGroup = new ThreadGroup("Analysis Group");
+		
+		CleanerThread manager = new CleanerThread(trdGroup);
+		
+		for (AnalysisVO analysisVO : jobs) {
+			PhysionetExecute execute = new PhysionetExecute(trdGroup, analysisVO);
+			manager.addFiles(execute.getName(), analysisVO.getFileNames());
+			execute.start();
+		}
+		
+		manager.start();
+		
+		return util.buildAnalysisReturn("TEST", jobs, "performAnalysis");	
+	}
+	
+	
 	private OMElement callWrapper(org.apache.axiom.om.OMElement e, PhysionetMethods method) {
 		debugPrintln("Physionet." + method.getOmeName() + "() started.");
 		
 		AnalysisUtils util = new AnalysisUtils();
-		PhysionetExecute execute = new PhysionetExecute(util);
 		
-		util.parseInputParametersType2(e);
-		util.verbose = verbose;
-		execute.verbose = verbose;
-
+		AnalysisVO analysis = util.parseInputParametersType2(e, method);
+		
+		PhysionetExecute execute = new PhysionetExecute(analysis);
+		
 		//************* Calls the wrapper of the analysis algorithm. *********************
 		String[] asOutputFileHandles = null;
 		
@@ -255,36 +267,10 @@ public class Physionet {
 		}
 		//************* Return value is an array of result files.    *********************
 		
-		return util.buildOmeReturnType2(util.sJobID, asOutputFileHandles, method.getOmeName(), localAnalysisOutputRoot, localOutputRoot);
+		return util.buildOmeReturnType2(util.getJobID(), asOutputFileHandles, method.getOmeName());
 	}
 
 	private void debugPrintln(String text){
-		if(verbose)	System.out.println("+ physionetAnalysisService + " + text);
-	}
-
-	
-	enum PhysionetMethods{
-		
-		ANN2RR("ann2rrWrapperType2"),
-		NGUESS("nguessWrapperType2"),
-		PNNLIST("pnnlistWrapperType2"),
-		RDSAMP("rdsampWrapperType2"),
-		SIGAAMP("sigampWrapperType2"),
-		SQRS("sqrsWrapperType2"),
-		TACH("tachWrapperType2"),
-		WQRS("wqrsWrapperType2"),
-		WRSAMP("wrsampWrapperType2"), 
-		CHESNOKOV("chesnokovWrapperType2");
-		
-		private String omeName; 
-		
-		PhysionetMethods(String name){
-			omeName = name;
-		}
-		
-		public String getOmeName(){
-			return omeName;
-		}
-		
+		log.debug("+ physionetAnalysisService + " + text);
 	}
 }

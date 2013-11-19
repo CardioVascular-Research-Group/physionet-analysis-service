@@ -3,19 +3,21 @@ package edu.jhu.cvrg.services.physionetAnalysisService.wrapper;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
-public class WFDBApplicationWrapper {
+import org.apache.log4j.Logger;
+
+import edu.jhu.cvrg.waveform.service.ServiceUtils;
+
+public class WFDBApplicationWrapper  extends ApplicationWrapper{
 	
-	private String outputFilename1 = "dummyOutput1.txt";
-	private String outputFilename2 = "dummyOutput2.txt";
-	private String[] outputFilenames = null;
-	private boolean verbose = false;
-	private BufferedReader stdInputBuffer = null;
-	private BufferedReader stdError = null;
+	private static final String WORKING_DIR = "/";
+
+	public WFDBApplicationWrapper() {
+		log = Logger.getLogger(WFDBApplicationWrapper.class);
+	}
 	
 	/** Runs the sqrs single-channel QRS detector. 
 	 * Returns a WFDB annotation file with .qrs extention,
@@ -23,31 +25,30 @@ public class WFDBApplicationWrapper {
 	 * 
 	 * @param sHeaderFile - file name of the WFDB (.hea) header file of the record to analyze.
 	 * @param sPath - FULL path of the header file.
-	 * @param iBegin - Begin at the specified time in record (default: the beginning of record). 
+	 * @param begin - Begin at the specified time in record (default: the beginning of record). 
 	 * @param bHighrez - Read the signal files in high-resolution mode (default: standard mode). 
 	 *                   These modes are identical for ordinary records. 
 	 *                   For multifrequency records, the standard decimation of oversampled signals to 
 	 *                   the frame rate is suppressed in high-resolution mode 
 	 *                   (rather, all other signals are resampled at the highest sampling frequency). 
-	 * @param iThreshold - Specify the detection threshold (default: 500 units); 
+	 * @param threshold - Specify the detection threshold (default: 500 units); 
 	 *                     use higher values to reduce false detections,
 	 *                     or lower values to reduce the number of missed beats. 
 	 * @param sSignal - Specify the signal (number or name) to be used for QRS detection (default: 0). 
-	 * @param iTime - Process until the specified time in record (-1 to default, the end of the record).
+	 * @param time - Process until the specified time in record (-1 to default, the end of the record).
 	 * 
 	 * @return
 	 */
-	public boolean sqrs(String sHeaderFile, String sPath, int iBegin, 
-						boolean bHighrez, int iThreshold, String sSignal, int iTime){
+	public boolean sqrs(String sHeaderFile, String sPath, Integer begin, boolean bHighrez, Integer threshold, String sSignal, Integer time){
 		boolean bRet = true;
 		debugPrintln("sqrs()");
 		debugPrintln("- sHeaderFile:" + sHeaderFile);
 		debugPrintln("- sPath:" + sPath);
-		debugPrintln("- iBegin:" + iBegin);
+		debugPrintln("- iBegin:" + begin);
 		debugPrintln("- bHighrez:" + bHighrez);
-		debugPrintln("- iThreshold:" + iThreshold);
+		debugPrintln("- iThreshold:" + threshold);
 		debugPrintln("- sSignal:" + sSignal);
-		debugPrintln("- iTime:" + iTime);
+		debugPrintln("- iTime:" + time);
 		try {
 			
 			// no environment variables are needed, 
@@ -59,25 +60,38 @@ public class WFDBApplicationWrapper {
 			int iIndexPeriod = sHeaderFile.lastIndexOf(".");
 			String sRecord = sHeaderFile.substring(0, iIndexPeriod);
 			
-			String sCommand = "sqrs -r " + sRecord;
-			if(iBegin !=0) sCommand += " -f " + iBegin;
-			if(bHighrez) sCommand += " -H ";
-			if(iThreshold != 500) sCommand += " -m " + iThreshold;
-			if(sSignal.equals("0")) sCommand += " -s " + sSignal;
-			if(iTime != -1) sCommand += " -t " + iTime;
+			String sCommand = "sqrs -r " + sPath + sRecord;
+			if(begin != null){ 
+				sCommand += " -f " + begin;
+			}
+			if(bHighrez){
+				sCommand += " -H ";
+			}
+			if(threshold != null && threshold != 500){ 
+				sCommand += " -m " + threshold;
+			}
+			if("0".equals(sSignal)){ 
+				sCommand += " -s " + sSignal;
+			}
+			if(time != null && time != -1){
+				sCommand += " -t " + time;
+			}
 	
-			bRet = executeCommand(sCommand, asEnvVar, sPath);
-			stdReturnHandler();
+			bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);
+			
+			bRet &= stdErrorHandler();
 			
 			if(bRet){
-				outputFilename1 = sPath + "/" + sRecord + ".qrs";
+				stdReturnHandler();
+				outputFilenames = new String[1];
+				outputFilenames[0] = sPath + sRecord + ".qrs";
 			}else{
 				debugPrintln("- Encountered errors.");
 			}
 			
 		} catch (IOException e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 
 		return bRet;
@@ -125,41 +139,49 @@ public class WFDBApplicationWrapper {
 			int iIndexPeriod = sHeaderFile.lastIndexOf(".");
 			String sRecord = sHeaderFile.substring(0, iIndexPeriod);
 			
-			String sCommand = "wqrs -r " + sRecord;
+			String sCommand = "wqrs -r " + sPath+ sRecord;
 			if(bDumpRaw) sCommand   += " -d ";
 			if(iBegin !=0) sCommand += " -f " + iBegin;
 			if(bPrintHelp) sCommand += " -h ";
 			if(bHighrez) sCommand   += " -H ";
 			if(bFindJPoints) sCommand += " -j ";
 			if(iThreshold != 500) sCommand += " -m " + iThreshold;
-			if(iPowerFreq !=60) sCommand += " -p " + iPowerFreq;
+			if(iPowerFreq != 60) sCommand += " -p " + iPowerFreq;
 			if(bResample) sCommand += " -R ";
-			if(sSignal.equals("0")) sCommand += " -s " + sSignal;
+			if(sSignal != null && sSignal.equals("0")) sCommand += " -s " + sSignal;
 			if(iTime != -1) sCommand += " -t " + iTime;
 			if(bVerbose) sCommand += " -v ";
 	
-			bRet = executeCommand(sCommand, asEnvVar, sPath);
-			stdReturnHandler();
-			debugPrintln("-------------");
+			bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);
+			
+			bRet &= stdErrorHandler();
+			
 			
 			if(bRet){
-				//set first output file to the annotation (.wqrs) file generated by the sqrs command
-				outputFilename1 = sPath + "/" + sRecord + ".wqrs";
-
-				sCommand = "rdann -a wqrs -r " + sRecord + " > " + sRecord + "_wqrs.txt";
-				bRet = executeCommand(sCommand, asEnvVar, sPath);
 				stdReturnHandler();
+				debugPrintln("-------------");
+				outputFilenames = new String[2];
+				//set first output file to the annotation (.wqrs) file generated by the sqrs command
+				
+				outputFilenames[0] = sPath + sRecord + ".wqrs";
+
+				sCommand = "rdann -a wqrs -r " + sPath + sRecord;
+				bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);
+			
+				bRet &= stdErrorHandler();
+				
+				stdReturnHandler(sPath + sRecord + "_wqrs.txt");
 				debugPrintln("-------------");
 
 				// set second output filename to the text file generated by rdann command.
-				outputFilename2 = sPath + "/" + sRecord + "_wqrs.txt";
+				outputFilenames[1] = sPath + sRecord + "_wqrs.txt";
 			}else{
 				debugPrintln("- Encountered errors.");
 			}
 			
 		} catch (IOException e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 
 		return bRet;
@@ -224,22 +246,23 @@ public class WFDBApplicationWrapper {
 			bRet &= stdErrorHandler();
 			
 			if(bRet){
+				outputFilenames = new String[2];
 				//set first output file to the annotation (.qrs) file generated by the sqrs command
-				outputFilename1 = sPath + "/" + sRecord + ".qrs";
+				outputFilenames[0] = sPath + WORKING_DIR + sRecord + ".qrs";
 
 				sCommand = "rdann -a qrs -r " + sRecord + " > " + sRecord + ".txt";
 				bRet = executeCommand(sCommand, asEnvVar, sPath);
 				stdReturnHandler();
 				bRet &= stdErrorHandler();
 				// set second output filename to the text file generated by rdann command.
-				outputFilename2 = sPath + "/" + sRecord + ".txt";
+				outputFilenames[1] = sPath + WORKING_DIR + sRecord + ".txt";
 			}else{
 				debugPrintln("- Encountered errors.");
 			}
 			
 		} catch (IOException e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 
 		return bRet;
@@ -320,17 +343,17 @@ public class WFDBApplicationWrapper {
 			int iIndexPeriod = sHeaderFile.lastIndexOf(".");
 			String sRecord = sHeaderFile.substring(0, iIndexPeriod);
 			
-			String sCommand = "sigamp -r " + sRecord; // record name (same as header file name.)
-			if(iBegin !=0) sCommand += " -f " + iBegin;
-			if(!sInputAnnotator.equals("")){
+			String sCommand = "sigamp -r " + sPath + sRecord; // record name (same as header file name.)
+			if(iBegin != 0) sCommand += " -f " + iBegin;
+			if(sInputAnnotator != null && !sInputAnnotator.equals("")){
 				sCommand += " -a " + sInputAnnotator; // Measure QRS peak-to-peak amplitudes based on normal QRS annotations from the specified annotator. 
 			}
 			// ( -d option must be used with -a;)
-			if((dDeltaMeasureStart != 0.05)|| (dDeltaMeasureEnd != 0.05)) sCommand += " -a " + dDeltaMeasureStart + " " + dDeltaMeasureEnd; // Set the measurement window relative to QRS annotations. 
+			if((dDeltaMeasureStart != 0.05) || (dDeltaMeasureEnd != 0.05)) sCommand += " -a " + dDeltaMeasureStart + " " + dDeltaMeasureEnd; // Set the measurement window relative to QRS annotations. 
 			if(bHighRez) sCommand += " -H "; // Read the signal files in high-resolution mode (default: standard mode).
-			if(iNmax !=300) sCommand += " -n " + iNmax; // Make up to nmax measurements on each signal (default: 300).			
+			if(iNmax != 300) sCommand += " -n " + iNmax; // Make up to nmax measurements on each signal (default: 300).			
 			if(iTime != -1) sCommand += " -t " + iTime; // Process until the specified time in record (default: the end of the record). Processing will be terminated prematurely if 250 measurements are made before reaching the specified time. 
-			if(dDeltaTimeWin !=1.0) sCommand += " -w " + dDeltaTimeWin; //Set RMS amplitude measurement window in seconds. Default: dtw = 1 (second). 
+			if(dDeltaTimeWin != 1.0) sCommand += " -w " + dDeltaTimeWin; //Set RMS amplitude measurement window in seconds. Default: dtw = 1 (second). 
 			//--  output adjustments
 			if(bVerbose) sCommand += " -v "; //Verbose mode: print individual measurements as well as trimmed means. 
 			if(bQuickmode) sCommand += " -q "; // Quick mode: print individual measurements only, not trimmed means.
@@ -342,20 +365,23 @@ public class WFDBApplicationWrapper {
 			if(bPrintSeconds) sCommand += " -ps ";// print physical units + elapsed time in seconds (default, same as -p)
 			if(bPrintSamples) sCommand += " -pS ";// print physical units + elapsed time in sample intervals
 
-			bRet = executeCommand(sCommand, asEnvVar, sPath);
-			stdReturnHandler(sPath + "/" + sRecord + ".txt");
+			bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);
+			
 			bRet &= stdErrorHandler();
 			
 			if(bRet){
+				stdReturnHandler(sPath + sRecord + ".txt");
+				outputFilenames = new String[1];
 				//set first output file to output generated by the sigamp command
-				outputFilename1 = sPath + "/" + sRecord + ".txt";
+				outputFilenames[0] = sPath + sRecord + ".txt";
+				
 			}else{
 				debugPrintln("- Encountered errors.");
 			}
 			
 		} catch (IOException e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 
 		return bRet;
@@ -431,7 +457,7 @@ public class WFDBApplicationWrapper {
 			
 			String sOutputFile = sRecord;
 			
-			String sCommand = "rdsamp -r " + sRecord; // record name
+			String sCommand = "rdsamp -r " + sPath + sRecord; // record name
 			if(bCsv) sCommand += " -c"; // CSV Format
 			if(iStarttime > 0) sCommand += " -f " + iStarttime;
 			if(bSummary) sCommand += " -h";	
@@ -439,10 +465,10 @@ public class WFDBApplicationWrapper {
 			if(dInterval > 0) sCommand += " -c " + dInterval;
 			
 			// one of the following: pd, pe, ph, pm, ps, pS, Pd, Pe, Ph, Pm, Ps, PS
-			if(!sFormatOutput.equals("")) sCommand += " -" + sFormatOutput; 
+			if(sFormatOutput != null && !sFormatOutput.equals("")) sCommand += " -" + sFormatOutput; 
 			
-			if(!sSignallist.equals("")) sCommand += " -s " + sSignallist;
-			if(!sFirstsignal.equals("")) sCommand += " -S " + sFirstsignal;
+			if(sSignallist !=null && !sSignallist.equals("")) sCommand += " -s " + sSignallist;
+			if(sFirstsignal != null && !sFirstsignal.equals("")) sCommand += " -S " + sFirstsignal;
 			if(iEndtime > 0) sCommand += " -t " + iEndtime;
 			if(bColumnheads) sCommand += " -v";
 			if(bXML) sCommand += " -X"; //Produce output in WFDB-XML format 
@@ -463,13 +489,12 @@ public class WFDBApplicationWrapper {
 
 			// essentially, we will be trying to stream the data and write it line by line to the output file as we receive it
 			
-			bRet = executeCommand(sCommand, asEnvVar, sPath);			
+			bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);			
 			
 			stdReturnHandler(sPath + sOutputFile);
-
-//			bRet &= 
-			stdErrorHandler(); // always seem to get "getvec: checksum error . . ."
-
+			
+			bRet &= stdErrorHandler();
+			
 			if(bRet){
 				//set first output file to output generated by the sigamp command
 				outputFilenames = new String[1];
@@ -480,7 +505,7 @@ public class WFDBApplicationWrapper {
 			
 		} catch (IOException e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 
 		return bRet;
@@ -570,7 +595,7 @@ public class WFDBApplicationWrapper {
 			
 			//sOutputFile = sRecord;
 			
-			String sCommand = "wrsamp -i " + sInputFile; // record name
+			String sCommand = "wrsamp -i " + sPath + sInputFile; // record name
 			if(bCheckInput) sCommand += " -c";
 			if(bDither) sCommand += " -d ";
 			if(iCopyStart > 0 ) sCommand += " -f " + iCopyStart;	
@@ -585,7 +610,7 @@ public class WFDBApplicationWrapper {
 				sOutputName = sInputFile.substring(0, iIndexPeriod);
 			}
 			
-			sCommand += " -o " + sOutputName + "_wrsamp";
+			sCommand += " -o " + sPath + sOutputName + "_wrsamp";
 						
 			if(cLineSeparator != '\u0000') sCommand += " -r " + cLineSeparator; // \u0000 is the empty char.  It is used since an empty char of '' cannot be declared in Java
 			if(cFieldSeparator != '\u0000') sCommand += " -s " + cFieldSeparator;
@@ -594,20 +619,22 @@ public class WFDBApplicationWrapper {
 
 			// essentially, we will be trying to stream the data and write it line by line to the output file as we receive it
 			
-			bRet = executeCommand(sCommand, asEnvVar, sPath);			
+			bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);			
 
+			bRet &= stdErrorHandler();
+			
 			if(bRet){
 				//set first output file to output generated by the sigamp command
 				outputFilenames = new String[2];
-				outputFilenames[0] = sPath + "/" + sOutputName + ".dat";
-				outputFilenames[1] = sPath + "/" + sOutputName + ".hea";
+				outputFilenames[0] = sPath + sOutputName + "_wrsamp" + ".dat";
+				outputFilenames[1] = sPath + sOutputName + "_wrsamp" + ".hea";
 			}else{
 				debugPrintln("- Encountered errors.");
 			}			
 			
 		} catch (Exception e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 
 		return bRet;
@@ -700,8 +727,10 @@ public class WFDBApplicationWrapper {
 		
 		//sOutputFile = sRecord;
 		
-		String sCommand = "tach -r " + sRecord; // record name
+		String sCommand = "tach -r " + sPath + sRecord; // record name
+		
 		sCommand += " -a " + sAnnotator;
+		
 		if(iStartTime > 0) sCommand += " -f " + iStartTime;
 		if( (iSampleFrequency != 2) && (iSampleFrequency > 0) ) {
 			sCommand += " -F " + iSampleFrequency;	
@@ -716,7 +745,13 @@ public class WFDBApplicationWrapper {
 			sOutputName = sRecord;
 		}
 		
-		sCommand += " -o " + sOutputName + "_tach";
+		//Problems with the output file path size, it's so big. 
+		// (path + filename) must have 33 characters at maximum 
+		String finalPathName = sPath + sOutputName + "_tach";
+		String tempName = RandomString.newString(5);
+		String tempPathName = ServiceUtils.SERVER_TEMP_ANALYSIS_FOLDER + File.separator + tempName;
+		
+		sCommand += " -o " + tempPathName;
 		
 		if(bOutlier) sCommand += " -O";
 			
@@ -727,21 +762,48 @@ public class WFDBApplicationWrapper {
 		if(bOutputMinutes) sCommand += " -Vm";
 		if(bOutputHours) sCommand += " -Vh";
 		
-		bRet = executeCommand(sCommand, asEnvVar, sPath);
+		bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);
+		
+		bRet &= stdErrorHandler();
 		
 		if(bRet){
+			
+			new File(tempPathName+".dat").renameTo(new File(finalPathName + ".dat"));
+			
+			File tmpHea = new File(tempPathName + ".hea");
+			File finalHea = new File(finalPathName + ".hea");
+			
+			finalHea.createNewFile();
+			
+			BufferedReader reader = new BufferedReader(new FileReader(tmpHea));
+			BufferedWriter writer = new BufferedWriter(new FileWriter(finalHea));
+			
+			String line;
+			while ((line = reader.readLine()) != null) {
+				line.replaceAll(tempPathName, finalPathName);
+				writer.write(line);
+				writer.newLine();
+			}
+			
+			reader.close();
+			writer.flush();
+			writer.close();
+			
+			tmpHea.delete();
+			RandomString.release(tempName);
+			
 			//set first output file to output generated by the sigamp command
 			outputFilenames = new String[2];
 			debugPrintln("- sOutputName:" + sOutputName);
-			outputFilenames[0] = sPath + "/" + sOutputName + ".dat";
-			outputFilenames[1] = sPath + "/" + sOutputName + ".hea";
+			outputFilenames[0] = finalPathName + ".dat";
+			outputFilenames[1] = finalPathName + ".hea";
 		}else{
 			debugPrintln("- Encountered errors.");
 		}			
 		
 		} catch (Exception e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 		
 		return bRet;
@@ -788,8 +850,7 @@ public class WFDBApplicationWrapper {
 	 * 
 	 * @return
 	 */	
-	public boolean nguess(String sInputFile, String sPath, 
-			String sAnnotator, int iStartTime, double dQInterval, int iEndTime, String sOutputName){
+	public boolean nguess(String sInputFile, String sPath, String sAnnotator, int iStartTime, double dQInterval, int iEndTime, String sOutputName){
 		boolean bRet = true;
 		debugPrintln("nguess()");
 		debugPrintln("- sInputFile:" + sInputFile);
@@ -802,48 +863,48 @@ public class WFDBApplicationWrapper {
 		
 		try {
 		
-		String[] asEnvVar = new String[0];  
-		
-		// build command string
-		int iIndexPeriod = sInputFile.lastIndexOf(".");
-		String sRecord = sInputFile.substring(0, iIndexPeriod);
-		
-		//sOutputFile = sRecord;
-		
-		String sCommand = "nguess -r " + sRecord; // record name
-		sCommand += " -a " + sAnnotator;
-		if(iStartTime > 0) sCommand += " -f " + iStartTime;
-
-		if(dQInterval > 0) {
-			sCommand += " -m " + dQInterval;	
-		}
-
-		
-		if(!sOutputName.equals(""))
-		{
-			sCommand += " -o " + sOutputName;
-		}
-		else
-		{
-			sOutputName = "nguess";
-		}
-		
-		if(iEndTime > 0) sCommand += " -t " + iEndTime;
-		
-		bRet = executeCommand(sCommand, asEnvVar, sPath);
-		
-		if(bRet){
-			//set first output file to output generated by the sigamp command
-			outputFilenames = new String[1];
-			debugPrintln("- sOutputName:" + sOutputName);
-			outputFilenames[0] = sPath + sRecord + "." + sOutputName;
-		}else{
-			debugPrintln("- Encountered errors.");
-		}			
+			String[] asEnvVar = new String[0];  
+			
+			// build command string
+			int iIndexPeriod = sInputFile.lastIndexOf(".");
+			String sRecord = sInputFile.substring(0, iIndexPeriod);
+			
+			//sOutputFile = sRecord;
+			
+			String sCommand = "nguess -r " + sPath + sRecord; // record name
+			
+			sCommand += " -a " + sAnnotator;
+			if(iStartTime > 0) sCommand += " -f " + iStartTime;
+	
+			if(dQInterval > 0) {
+				sCommand += " -m " + dQInterval;	
+			}
+	
+			if(sOutputName != null && !sOutputName.equals("")){
+				sCommand += " -o " + sOutputName;
+			}else{
+				sOutputName = "nguess";
+			}
+			
+			if(iEndTime > 0) sCommand += " -t " + iEndTime;
+			
+			bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);
+			
+			bRet &= stdErrorHandler();
+			
+			if(bRet){
+				stdReturnHandler();
+				//set first output file to output generated by the sigamp command
+				outputFilenames = new String[1];
+				debugPrintln("- sOutputName:" + sOutputName);
+				outputFilenames[0] = sPath + sRecord + "." + sOutputName;
+			}else{
+				debugPrintln("- Encountered errors.");
+			}			
 		
 		} catch (Exception e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 		
 		return bRet;
@@ -853,14 +914,14 @@ public class WFDBApplicationWrapper {
 	 *  This converts annotation files to interval lists.
 	 *  
 	 * @param sInputFile - file name of the text file signal file to analyze.
-	 * @param sPath - Produce output in CSV (comma-separated value) format (default: write output in tab-separated columns).
+	 * @param path - Produce output in CSV (comma-separated value) format (default: write output in tab-separated columns).
 	 * @param bAllIntervals -A Print all intervals between annotations. 
 	 * @param bConsecutive -c Print intervals between consecutive valid annotations only.
-	 * @param iStartTime -f Begin at the specified time. 
+	 * @param startTime -f Begin at the specified time. 
 	 * @param sIntervalFormat -i Print intervals in the specified format. 
 	 * @param sMneumonicsEnd -p type [ type ... ] Print intervals ended by annotations of the specified types only.
 	 * @param sMneumonicsBegin -P type [ type ... ] Print intervals begun by annotations of the specified types only. 
-	 * @param iEndTime -t Stop at the specified time.     
+	 * @param endTime -t Stop at the specified time.     
 	 * @param sFinalTimesFormat -v format Print final times in the specified format.
 	 * @param sInitialTimesFormat -V format  Print initial times in the specified format.
 	 * @param bFinalAnnotations -w Print final annotations.
@@ -869,21 +930,21 @@ public class WFDBApplicationWrapper {
 	 * 
 	 * @return
 	 */	
-	public boolean ann2rr(String sInputFile, String sPath, 
-			boolean bAllIntervals, boolean bConsecutive, int iStartTime, 
-			String sIntervalFormat, String sMneumonicsEnd, String sMneumonicsBegin, int iEndTime, String sFinalTimesFormat, 
+	public boolean ann2rr(String sInputFile, String path, 
+			String annotator, boolean bAllIntervals, boolean bConsecutive, int startTime, 
+			String sIntervalFormat, String sMneumonicsEnd, String sMneumonicsBegin, int endTime, String sFinalTimesFormat, 
 			String sInitialTimesFormat, boolean bFinalAnnotations, boolean bInitialAnnotations, String sOutputName){
 		boolean bRet = true;
 		debugPrintln("ann2rr()");
 		debugPrintln("- sInputFile:" + sInputFile);
-		debugPrintln("- sPath:" + sPath);
+		debugPrintln("- sPath:" + path);
 		debugPrintln("- bAllInverals:" + bAllIntervals);
 		debugPrintln("- bConsecutive:" + bConsecutive);
-		debugPrintln("- bStartTime:" + iStartTime);  		
+		debugPrintln("- bStartTime:" + startTime);  		
 		debugPrintln("- sIntervalFormat:" + sIntervalFormat);
 		debugPrintln("- sMneumonicsEnd:" + sMneumonicsEnd);
 		debugPrintln("- sMneumonicsBegin:" + sMneumonicsBegin);
-		debugPrintln("- iEndTime:" + iEndTime);
+		debugPrintln("- iEndTime:" + endTime);
 		debugPrintln("- sFinalTimesFormat:" + sFinalTimesFormat);
 		debugPrintln("- sInitialTimesFormat:" + sInitialTimesFormat);
 		debugPrintln("- bFinalAnnotations:" + bFinalAnnotations);
@@ -892,82 +953,84 @@ public class WFDBApplicationWrapper {
 
 		try {
 
-			String[] asEnvVar = new String[0];  
+			String[] envVar = new String[0];  
 
 			// build command string
 			int iIndexPeriod = sInputFile.lastIndexOf(".");
 			String sRecord = sInputFile.substring(0, iIndexPeriod);
 
-			String sCommand = "ann2rr -r " + sRecord + " -a atr"; // record name
-
+			String command = "ann2rr -r " + path + sRecord ; // record name
+			
+			command += " -a " + annotator;
+			
 			if (bAllIntervals) {
-				sCommand += " -A"; // Print all intervals between annotations. This option overrides the -c and -p options. 
+				command += " -A"; // Print all intervals between annotations. This option overrides the -c and -p options. 
 			} else {
 				if (bConsecutive) {
-					sCommand += " -c"; // Print intervals between consecutive valid annotations only.
+					command += " -c"; // Print intervals between consecutive valid annotations only.
 				}
 
 				if (sMneumonicsEnd != null) {
-					sCommand += " -p " + sMneumonicsEnd;
+					command += " -p " + sMneumonicsEnd;
 				}
 			}
 
-			if(iStartTime > 0) sCommand += " -f " + iStartTime;
+			if(startTime > 0) command += " -f " + startTime;
 
-			if(!sIntervalFormat.equals("")){
-				sCommand += " -i " + sIntervalFormat;
+			if(sIntervalFormat != null && !sIntervalFormat.equals("")){
+				command += " -i " + sIntervalFormat;
 			}
 
-			if(!sMneumonicsBegin.equals("")){
-				sCommand += " -P " + sMneumonicsBegin;
+			if(sMneumonicsBegin != null &&  !sMneumonicsBegin.equals("")){
+				command += " -P " + sMneumonicsBegin;
 			}
 
-			if(iEndTime > 0){ 
-				sCommand += " -t " + iEndTime;
+			if(endTime > 0){ 
+				command += " -t " + endTime;
 			}
 
-			if(!sFinalTimesFormat.equals("")){
-				sCommand += " -v " + sFinalTimesFormat;
+			if(sFinalTimesFormat != null && !sFinalTimesFormat.equals("")){
+				command += " -v " + sFinalTimesFormat;
 			}
 
-			if(!sInitialTimesFormat.equals("")){
-				sCommand += " -V " + sInitialTimesFormat;
+			if(sInitialTimesFormat != null && !sInitialTimesFormat.equals("")){
+				command += " -V " + sInitialTimesFormat;
 			}
 
 			if(bFinalAnnotations){
-				sCommand += " -w";
+				command += " -w";
 			}
 
 			if(bInitialAnnotations){
-				sCommand += " -W";
+				command += " -W";
 			}
 
-			bRet = executeCommand(sCommand, asEnvVar, sPath);
+			bRet = executeCommand(command, envVar, WORKING_DIR);
 
-			stdReturnHandler(sPath + sOutputName + ".rr");
-
+			bRet &= stdErrorHandler();
+			
 			if(bRet){
+				stdReturnHandler(path + sOutputName + ".rr");
 				//set first output file.
 				outputFilenames = new String[1];
 				debugPrintln("- sOutputName:" + sOutputName);
-				outputFilenames[0] = sPath + sOutputName + ".rr";
+				outputFilenames[0] = path + sOutputName + ".rr";
 			}else{
 				debugPrintln("- Encountered errors.");
 			}			
 
 		} catch (Exception e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 
 		return bRet;
 	}
 	
-		/** Runs the Physionet pnnlist tool to derive pNNx statistics from an annotation interval list or an annotation file .
-		 * 
-		 */
-		public boolean pnnlist(String sInputFile, String sPath, int iStartTime, int iEndTime,
-			String sAnnotator, double iInc, boolean bPercents, boolean bSeparateDistributions, String sOutputName){
+	/** Runs the Physionet pnnlist tool to derive pNNx statistics from an annotation interval list or an annotation file .
+	 * 
+	 */
+	public boolean pnnlist(String sInputFile, String sPath, int iStartTime, int iEndTime, String sAnnotator, double iInc, boolean bPercents, boolean bSeparateDistributions, String sOutputName){
 		boolean bRet = true;
 		debugPrintln("pnnlist()");
 		debugPrintln("- sInputFile:" + sInputFile);
@@ -990,28 +1053,24 @@ public class WFDBApplicationWrapper {
 		
 		getDirs();
 		
-		String sCommand = "pnnlist";
-		if(iInc > 0) sCommand += " -i " + iInc;
-		if(bPercents) sCommand += " -p";	
-		if(bSeparateDistributions) sCommand += " -s";
-		
-		sCommand += " pNNx -r " + sRecord + " -a " + sAnnotator;
+//		String sCommand = "pnnlist";
+//		if(iInc > 0) sCommand += " -i " + iInc;
+//		if(bPercents) sCommand += " -p";	
+//		if(bSeparateDistributions) sCommand += " -s";
+
+		String sCommand = " pNNx -r " + sPath + sRecord + " -a " + sAnnotator;
 		if(iStartTime > 0) sCommand += " -f " + iStartTime;
 		if(iEndTime > 0) sCommand += " -t " + iEndTime;
 		debugPrintln("- sCommand:" + sCommand);
 		
-		boolean anotherBool = executeCommand("pwd", asEnvVar, "./");
 		
-		stdReturnHandler(sPath + sOutputName + ".pwd");
-		
-		bRet = executeCommand(sCommand, asEnvVar, sPath);
+		bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);
 		
 		bRet &= stdErrorHandler();
 		
 		stdReturnHandler(sPath + sOutputName + ".pnn");
 		
 		if(bRet){
-			//set first output file to output generated by the sigamp command
 			outputFilenames = new String[1];
 			debugPrintln("- sOutputName:" + sOutputName);
 			outputFilenames[0] = sPath + sOutputName + ".pnn";
@@ -1021,154 +1080,20 @@ public class WFDBApplicationWrapper {
 		
 		} catch (Exception e) {
 			bRet = false;
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 		
 		return bRet;
 	}
 	
-	/** Executes the command and pipes the response and errors to stdInputBuffer and stdError respectively.
-	 * 
-	 * @param sCommand - a specified system command.
-	 * @param asEnvVar - array of strings, each element of which has environment variable settings in format name=value.
-	 * @param sWorkingDir - the working directory of the subprocess, or null if the subprocess should inherit the working directory of the current process. 
-	 * @return 
-	 */
-	private boolean executeCommand(String sCommand, String[] asEnvVar, String sWorkingDir){
-		debugPrintln("++ executeCommand(" + sCommand );
-		debugPrintln("++ , asEnvVar[" + asEnvVar.length + "]");
-		debugPrintln("++, " + sWorkingDir + ")");
-		boolean bRet = true;	
-		
-		try {
-			File fWorkingDir = new File(sWorkingDir); //converts the dir name to File for exec command.
-			Runtime rt = Runtime.getRuntime();
-			Process process = rt.exec(sCommand, asEnvVar, fWorkingDir);
-			InputStream is = process.getInputStream();  // The input stream for this method comes from the output from rt.exec()
-			InputStreamReader isr = new InputStreamReader(is);
-			stdInputBuffer = new BufferedReader(isr);
-			
-			InputStream errs = process.getErrorStream();
-			InputStreamReader esr = new InputStreamReader(errs);
-			stdError = new BufferedReader(esr);
-		} catch (IOException ioe) {
-			System.err.println("++ IOException Message: executeCommand(" + sCommand + ")" + ioe.getMessage());
-			ioe.printStackTrace();
-			bRet = false;
-		} catch (Exception e) {
-			System.err.println("++ Exception Message: executeCommand(" + sCommand + ")" + e.getMessage());
-			e.printStackTrace();
-			bRet = false;
-		}
-		debugPrintln("++ returning: " + bRet);
-		return bRet;
-	}
-
-	/** This writes the output to the standard output if verbose is true
-	 * 
-	 * @throws IOException
-	 */	
-	
-	private void stdReturnHandler() throws IOException{
-	    String line;
-		
-	    int lineNum = 0;
-	    debugPrintln("Here is the returned text of the command (if any):");
-	    while ((line = stdInputBuffer.readLine()) != null) {
-	    	debugPrintln(lineNum + ")" + line);
-	    	lineNum++;
-	    }
-	}
-	
-	/** This writes the output of the execution to a file instead of standard output
-	 * 
-	 * @param outputFilename
-	 * @throws IOException
-	 */
-	private void stdReturnHandler(String outputFilename) throws IOException{
-	    String line;
-
-		try{
-			// Create file 
-			debugPrintln("stdReturnHandler(FName) Creating output file: " + outputFilename);
-			FileWriter fstream = new FileWriter(outputFilename);
-			BufferedWriter bwOut = new BufferedWriter(fstream);
-
-			int lineNum = 0;
-		    debugPrintln("Here is the returned text of the command (if any): \"");
-		    while ((line = stdInputBuffer.readLine()) != null) {
-		    	bwOut.write(line);
-		    	bwOut.newLine();
-		    	if (lineNum<10){
-		    		debugPrintln(lineNum + ")" + line);
-		    	}
-		    	
-		    	lineNum++;
-		    }
-		    debugPrintln(". . . ");
-		    debugPrintln(lineNum + ")" + line);
-	        debugPrintln("\"");
-			bwOut.flush();
-			//Close the output stream
-			bwOut.close();
-		}catch (Exception e){//Catch exception if any
-		   System.err.println("Error: " + e.getMessage());
-		}
-	}
-
-	
-	/** This function prints messages resulting from runtime problems to the system standard error
-	 * @return Boolean variable:  True if there are no errors, false if there are errors.
-	 * 
-	 * @throws IOException
-	 */	
-	private boolean stdErrorHandler() throws IOException{
-		boolean bRet = true;
-		String error;
-	    int lineNum = 0;
-
-	    // read any errors from the attempted command
-	    debugPrintln("");
-	    debugPrintln("Here is the standard error of the command (if any): \"");
-        while ((error = stdError.readLine()) != null) {
-            System.err.println(lineNum + ">" + error);
-            lineNum++;
-
-			bRet = false;
-        }
-        debugPrintln("\"");
-		return bRet;
-
-	}
-
-	public String getOutputFilename1() {
-		return outputFilename1;
-	}
-
-	public String getOutputFilename2() {
-		return outputFilename2;
-	}
-	
-	public String[] getOutputFilenames() {
-		return outputFilenames;
-	}
-	
-	public void setVerbose(boolean verbose) {
-		this.verbose = verbose;
-	}
-
-	private void debugPrintln(String text){
-		if(verbose)	System.out.println("- WFDBApplicationWrapper - " + text);
-	}
-	
-    private void getDirs() {
+	private void getDirs() {
         File dir1 = new File(".");
         File dir2 = new File("..");
         try {
             debugPrintln("Current dir : " + dir1.getCanonicalPath());
             debugPrintln("Parent  dir : " + dir2.getCanonicalPath());
         } catch (Exception e) {
-            e.printStackTrace();
+        	log.error(e.getMessage());
         }
     }
 
