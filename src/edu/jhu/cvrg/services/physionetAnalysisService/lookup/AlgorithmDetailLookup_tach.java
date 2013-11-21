@@ -19,7 +19,8 @@ public class AlgorithmDetailLookup_tach {
 		//-----------  tach  -----------
 		//-------------------------------------------------
 		//details.iWebServiceID = 0;
-		debugPrintln(" - Loading tach details.");  
+		debugPrintln(" - Loading tach details.");
+		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
 		details.sServiceMethod = "tachWrapperType2";
 		details.sDisplayShortName = "tach";

@@ -19,7 +19,8 @@ public class AlgorithmDetailLookup_wrsamp {
 		//-----------  wrsamp  -----------
 		//-------------------------------------------------
 		//details.iWebServiceID = 0;
-		debugPrintln(" - Loading wrsamp details.");  
+		debugPrintln(" - Loading wrsamp details.");
+		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
 		details.sServiceMethod = "wrsampWrapperType2";
 		details.sDisplayShortName = "wrsamp";

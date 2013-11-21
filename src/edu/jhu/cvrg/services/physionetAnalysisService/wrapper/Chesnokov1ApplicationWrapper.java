@@ -18,6 +18,7 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
 import org.jdom.transform.XSLTransformer;
 
+import edu.jhu.cvrg.waveform.service.ApplicationWrapper;
 import edu.jhu.cvrg.waveform.service.ServiceProperties;
 
 public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
@@ -201,5 +202,11 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
                     + ex);
         }
     }
+
+
+	@Override
+	protected void processReturnLine(String arg0) {
+		// TODO Auto-generated method stub
+	}
 	
 }

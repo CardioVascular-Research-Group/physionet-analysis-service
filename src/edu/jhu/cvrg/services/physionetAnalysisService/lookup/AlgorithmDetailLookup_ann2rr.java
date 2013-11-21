@@ -18,7 +18,8 @@ public class AlgorithmDetailLookup_ann2rr {
 		//-------------------------------------------------
 		//-----------  ann2rr  -----------
 		//-------------------------------------------------
-		debugPrintln(" - Loading ann2rr details.");  
+		debugPrintln(" - Loading ann2rr details.");
+		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
 		details.sServiceMethod = "ann2rrWrapperType2";
 		details.sDisplayShortName = "ann2rr";

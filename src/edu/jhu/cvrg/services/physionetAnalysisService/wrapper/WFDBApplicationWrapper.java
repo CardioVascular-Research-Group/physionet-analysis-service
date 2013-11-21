@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.cvrg.waveform.service.ApplicationWrapper;
 import edu.jhu.cvrg.waveform.service.ServiceUtils;
 
 public class WFDBApplicationWrapper  extends ApplicationWrapper{
@@ -1096,5 +1097,10 @@ public class WFDBApplicationWrapper  extends ApplicationWrapper{
         	log.error(e.getMessage());
         }
     }
+
+	@Override
+	protected void processReturnLine(String arg0) {
+		// TODO Auto-generated method stub
+	}
 
 }

@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import edu.jhu.cvrg.services.physionetAnalysisService.wrapper.Chesnokov1ApplicationWrapper;
 import edu.jhu.cvrg.services.physionetAnalysisService.wrapper.WFDBApplicationWrapper;
+import edu.jhu.cvrg.waveform.service.ServiceUtils;
 
 
 public class PhysionetExecute extends Thread{
@@ -46,7 +47,7 @@ public class PhysionetExecute extends Thread{
 		
 		if(errorMessage.length() == 0){
 			//send the result files
-			AnalysisUtils.moveFiles(asOutputFileHandles, analysis.getGroupId(), analysis.getFolderId(), String.valueOf(analysis.getJobId()));
+			AnalysisUtils.moveFiles(asOutputFileHandles, analysis.getGroupId(), analysis.getFolderId());
 		}
 		
 		
@@ -83,20 +84,19 @@ public class PhysionetExecute extends Thread{
 			String sAnnotator = annotationFileName.substring(annotationFileName.lastIndexOf('.')+1);
 			
 			//**********************************************************************
-			String sInputPath = AnalysisUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = AnalysisUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
-			String sOutputFile = "jhu315_rr";  // In this case, this variable defines the extension, not the filename
-
+			
 			debugPrintln("- entering ann2rr()");
 			boolean status = cWFDB.ann2rr(sInputName, sInputPath, 
 					sAnnotator, allIntervals, consecutive, startTime, 
 					intervalFormat, mneumonicsEnd, mneumonicsBegin, endTime, finalTimesFormat, 
-					initialTimesFormat, finalAnnotations, initialAnnotations, sOutputFile);
+					initialTimesFormat, finalAnnotations, initialAnnotations, sInputName);
 
 			//*** If the analysis fails, this method should return a null.
 			debugPrintln("- status: " + status);
@@ -138,8 +138,8 @@ public class PhysionetExecute extends Thread{
 			
 			String 	sOutputFile	= (String) analysis.getCommandParamMap().get("o"); // -o  // In this case, this variable defines the extension, not the filename
 			
-			String sInputPath = AnalysisUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = AnalysisUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
@@ -193,8 +193,8 @@ public class PhysionetExecute extends Thread{
 			boolean bPercents				= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("p")); // -p Compute and output increments as percentage of initial intervals. 
 			boolean bSeparateDistributions	= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("s")); // -s Compute and output separate distributions of positive and negative intervals. 
 			
-			String sInputPath = AnalysisUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = AnalysisUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
@@ -274,8 +274,8 @@ public class PhysionetExecute extends Thread{
 			boolean bPrintSamples	= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("pS")); // -pS (elapsed time in sample intervals).
 			//**********************************************************************
 			String sHeaderPathName = AnalysisUtils.findHeaderPathName(analysis.getFileNames());
-			String sHeaderPath = AnalysisUtils.extractPath(sHeaderPathName);
-			String sHeaderName = AnalysisUtils.extractName(sHeaderPathName);
+			String sHeaderPath = ServiceUtils.extractPath(sHeaderPathName);
+			String sHeaderName = ServiceUtils.extractName(sHeaderPathName);
 			
 			debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sHeaderPath: " + sHeaderPath);
@@ -344,8 +344,8 @@ public class PhysionetExecute extends Thread{
 			// WFDB files consist of a header file and one or more data files.
 			// This function takes the header file as a parameter, and then uses it to look up the name(s) of the data file(s).
 			String sHeaderPathName = AnalysisUtils.findHeaderPathName(analysis.getFileNames());
-			String sHeaderPath = AnalysisUtils.extractPath(sHeaderPathName);
-			String sHeaderName = AnalysisUtils.extractName(sHeaderPathName);
+			String sHeaderPath = ServiceUtils.extractPath(sHeaderPathName);
+			String sHeaderName = ServiceUtils.extractName(sHeaderPathName);
 			
 			debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sHeaderPath: " + sHeaderPath);
@@ -418,8 +418,8 @@ public class PhysionetExecute extends Thread{
 			//**********************************************************************
 			
 			String sHeaderPathName = AnalysisUtils.findHeaderPathName(analysis.getFileNames());
-			String sHeaderPath = AnalysisUtils.extractPath(sHeaderPathName);
-			String sHeaderName = AnalysisUtils.extractName(sHeaderPathName);
+			String sHeaderPath = ServiceUtils.extractPath(sHeaderPathName);
+			String sHeaderName = ServiceUtils.extractName(sHeaderPathName);
 			
 			debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sHeaderPath: " + sHeaderPath);
@@ -477,8 +477,8 @@ public class PhysionetExecute extends Thread{
 			boolean bXML		= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("X")); // -X // Produce output in WFDB-XML format 
 			
 			String sHeaderPathName = AnalysisUtils.findHeaderPathName(analysis.getFileNames());
-			String sHeaderPath = AnalysisUtils.extractPath(sHeaderPathName);
-			String sHeaderName = AnalysisUtils.extractName(sHeaderPathName);
+			String sHeaderPath = ServiceUtils.extractPath(sHeaderPathName);
+			String sHeaderName = ServiceUtils.extractName(sHeaderPathName);
 			
 			debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sHeaderPath: " + sHeaderPath);
@@ -552,8 +552,8 @@ public class PhysionetExecute extends Thread{
 			boolean bOutputHours 	= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("Vh")); // -Vh Print the output sample time in hours
 			
 			//String sHeaderPathName = findHeaderPathName(asInputFileNames);
-			String sInputPath = AnalysisUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = AnalysisUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
 			
 			//debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sInputPath: " + sInputPath);
@@ -619,8 +619,8 @@ public class PhysionetExecute extends Thread{
 			}
 			 
 			//************************************************************************************************************			
-			String sInputPath = AnalysisUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = AnalysisUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
@@ -652,8 +652,8 @@ public class PhysionetExecute extends Thread{
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
 			String sDatPathName = AnalysisUtils.findPathNameExt(analysis.getFileNames(), "dat");
-			String sDatPath = AnalysisUtils.extractPath(sDatPathName);
-			String sDatName = AnalysisUtils.extractName(sDatPathName);
+			String sDatPath = ServiceUtils.extractPath(sDatPathName);
+			String sDatName = ServiceUtils.extractName(sDatPathName);
 			
 			debugPrintln("- sDatPathName: " + sDatPathName);
 			debugPrintln("- sDatPath: " + sDatPath);

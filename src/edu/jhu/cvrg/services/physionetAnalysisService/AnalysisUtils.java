@@ -16,7 +16,9 @@ import org.apache.axiom.om.OMNamespace;
 import org.apache.log4j.Logger;
 
 import edu.jhu.cvrg.waveform.model.PhysionetMethods;
+import edu.jhu.cvrg.waveform.service.ServiceProperties;
 import edu.jhu.cvrg.waveform.service.ServiceUtils;
+import edu.jhu.cvrg.waveform.utility.WebServiceUtility;
 
 
 public class AnalysisUtils {
@@ -29,7 +31,6 @@ public class AnalysisUtils {
 	private String sOMNameSpacePrefix =  "physionetAnalysisService";  
 	public Map<String, Object> mapCommandParam = null;
 	public String[] inputFileNames = null;
-	private String jobID ="";
 	private long folderID;
 	private long groupID;
 	
@@ -43,30 +44,25 @@ public class AnalysisUtils {
 		try {
 			Map<String, OMElement> params = ServiceUtils.extractParams(param0);
 			
-			jobID      			= params.get("jobID").getText() ;
+			String jobID     	= params.get("jobID").getText() ;
 			String userID      	= params.get("userID").getText() ;
 			folderID      		= Long.parseLong(params.get("folderID").getText()) ;
 			groupID      		= Long.parseLong(params.get("groupID").getText()) ;
-			int iFileCount      = Integer.parseInt( params.get("fileCount").getText() ); 
-			int iParameterCount = Integer.parseInt( params.get("parameterCount").getText()); 
+			String subjectID    = params.get("subjectID").getText() ;
+			OMElement parameterlist = (OMElement) params.get("parameterlist");
 			
-			debugPrintln("Extracting filehandlelist, should be " + iFileCount + " files ... and Building Input Filename array...");
-			String inputPath = ServiceUtils.SERVER_TEMP_ANALYSIS_FOLDER + sep + userID;
-			
+			String inputPath = ServiceUtils.SERVER_TEMP_ANALYSIS_FOLDER + sep + jobID;
 			StringTokenizer strToken = new StringTokenizer(params.get("fileNames").getText(), "^");
 			String[] fileNames = new String[strToken.countTokens()];
 			for (int i = 0; i < fileNames.length; i++) {
 				String name = strToken.nextToken();
-				
-				ServiceUtils.createTempLocalFile(params, name, userID, inputPath, name);
+				//ServiceUtils.createTempLocalFile(params, name, userID, inputPath, name);
 				fileNames[i] = inputPath + sep + name;
 			}
 			
 			inputFileNames = fileNames;
 
-			if(iParameterCount>0){
-				debugPrintln("Extracting parameterlist, should be " + iParameterCount + " parameters ...;");
-				OMElement parameterlist = (OMElement) params.get("parameterlist");
+			if(parameterlist != null){
 				debugPrintln("Building Command Parameter map...;");
 				mapCommandParam = buildParamMap(parameterlist);
 			}else{
@@ -74,7 +70,7 @@ public class AnalysisUtils {
 				mapCommandParam = new HashMap<String, Object>(); 
 			}
 			
-			ret = new AnalysisVO(Long.valueOf(jobID), userID, groupID, folderID, "oldversion", algorithm, inputFileNames, mapCommandParam);
+			ret = new AnalysisVO(jobID, userID, groupID, folderID, subjectID, algorithm, inputFileNames, mapCommandParam);
 			
 		} catch (Exception e) {
 			errorMessage = "parseInputParametersType2 failed.";
@@ -105,7 +101,7 @@ public class AnalysisUtils {
 				Map<String, OMElement> algorithm = ServiceUtils.extractParams(algorithms.get(algorithmKey));
 				PhysionetMethods type = PhysionetMethods.getMethodByName(algorithmKey);
 				
-				long jobId = Long.parseLong(algorithm.get("jobID").getText());
+				String jobId = algorithm.get("jobID").getText();
 				String inputPath = ServiceUtils.SERVER_TEMP_ANALYSIS_FOLDER + sep +jobId;
 				
 				StringTokenizer strToken = new StringTokenizer(algorithm.get("fileNames").getText(), "^");
@@ -114,7 +110,7 @@ public class AnalysisUtils {
 					String name = strToken.nextToken();
 					fileNames[i] = inputPath + sep + name;
 					
-					ServiceUtils.createTempLocalFile(params, name, userId, inputPath, name);
+					ServiceUtils.createTempLocalFile(params, name, inputPath, name);
 				}
 				
 				ret.add(new AnalysisVO(jobId, userId, groupId, folderID, subjectID, type, fileNames, null));
@@ -168,40 +164,53 @@ public class AnalysisUtils {
 	}
 	
 
-	public OMElement buildOmeReturnType2(String jobID, String[] outputFileNameList, String returnOMEName){
+	public OMElement buildOmeReturnType2(AnalysisVO analysis){
 		OMElement omeReturn = null;
 		try{
 			OMFactory omFactory = OMAbstractFactory.getOMFactory(); 	 
 			OMNamespace omNs = omFactory.createOMNamespace(sOMNameSpaceURI, sOMNameSpacePrefix); 	 
 
-			omeReturn = omFactory.createOMElement(returnOMEName, omNs); 
+			omeReturn = omFactory.createOMElement(analysis.getAlgorithm().getOmeName(), omNs); 
 	
-			//Moves files from analysis temp directory to Liferay
-			outputFileNameList = moveFiles(outputFileNameList, groupID, folderID, jobID);
-
 			// Converts the array of filenames to a single "^" delimited String for output.
 			if (errorMessage.length() == 0){
-				addOMEChild("filecount", new Long(outputFileNameList.length).toString(),omeReturn,omFactory,omNs);
-				omeReturn.addChild( makeOutputOMElement(outputFileNameList, "filenamelist", "filename", omFactory, omNs) );
-				addOMEChild("jobID", jobID, omeReturn, omFactory, omNs);
+				addOMEChild("filecount", new Long(analysis.getOutputFileNames().length).toString(),omeReturn,omFactory,omNs);
+				omeReturn.addChild( makeOutputOMElement(analysis.getOutputFileNames(), "filenamelist", "filename", omFactory, omNs) );
+				addOMEChild("jobID", analysis.getJobId(), omeReturn, omFactory, omNs);
+				
+				sendResultsBack(analysis);
+				
 			}else{
 				addOMEChild("error","If analysis failed, put your message here: \"" + errorMessage + "\"",omeReturn,omFactory,omNs);
 			}
 		} catch (Exception e) {
 			errorMessage = "genericWrapperType2 failed.";
 			log.error(errorMessage + " " + e.getMessage());
-		}finally{
-			//Delete temporary files
-			if(inputFileNames != null){
-				for (String fileName : inputFileNames) {
-					ServiceUtils.deleteFile(fileName);
-				}
-			}
 		}
 		
 		return omeReturn;
 	}
 	
+	private void sendResultsBack(AnalysisVO analysis) {
+		
+		Map<String, String> parameterMap = new HashMap<String, String>();
+		
+		parameterMap.put("jobID", analysis.getJobId());
+		parameterMap.put("groupID", String.valueOf(analysis.getGroupId()));
+		parameterMap.put("folderID", String.valueOf(analysis.getFolderId()));
+		
+		String fileNames = "";
+		for (String name : analysis.getOutputFileNames()) {
+			fileNames+=(name+'^');
+		}
+		parameterMap.put("resultFileNames", fileNames);
+		
+		ServiceProperties props = ServiceProperties.getInstance();
+		
+		WebServiceUtility.callWebService(parameterMap, props.getProperty("dataTransferServiceMethod"), props.getProperty("dataTransferServiceName"), props.getProperty("dataTransferServiceURL"), null);
+		
+	}
+
 	public OMElement buildAnalysisReturn(String jobID, Set<AnalysisVO> analysisSet, String returnOMEName){
 		OMElement omeReturn = null;
 		OMFactory omFactory = OMAbstractFactory.getOMFactory(); 	 
@@ -268,7 +277,7 @@ public class AnalysisUtils {
 	 * @param fileNames - array of full file path/name strings.
 	 * @return - array of the new full file path/name strings.
 	 */
-	protected static String[] moveFiles(String[] fileNames, long groupId, long folderId, String jobId){
+	protected static String[] moveFiles(String[] fileNames, long groupId, long folderId){
 		String errorMessage = "";
 		debugPrintln("moveFiles() from: local to: liferay");
 		if (fileNames != null) {
@@ -279,7 +288,7 @@ public class AnalysisUtils {
 					File orign = new File(fileNames[i]);
 					FileInputStream fis = new FileInputStream(orign);
 					
-					String path = AnalysisUtils.extractPath(fileNames[i]);
+					String path = ServiceUtils.extractPath(fileNames[i]);
 					
 					ServiceUtils.sendToLiferay(groupId, folderId, path, orign.getName(), orign.length(), fis);
 					
@@ -334,34 +343,8 @@ public class AnalysisUtils {
 	}
 
 	
-	public static String extractPath(String sHeaderPathName){
-		debugPrintln("extractPath() from: '" + sHeaderPathName + "'");
-
-		String sFilePath="";
-		int iIndexLastSlash = sHeaderPathName.lastIndexOf("/");
-		
-		sFilePath = sHeaderPathName.substring(0,iIndexLastSlash+1);
-		
-		return sFilePath;
-	}
-	
-	public static String extractName(String sFilePathName){
-		debugPrintln("extractName() from: '" + sFilePathName + "'");
-
-		String sFileName="";
-		int iIndexLastSlash = sFilePathName.lastIndexOf("/");
-		
-		sFileName = sFilePathName.substring(iIndexLastSlash+1);
-
-		return sFileName;
-	}
-	
 	private static void debugPrintln(String text){
 		log.debug("++ analysisUtils + " + text);
-	}
-
-	public String getJobID() {
-		return jobID;
 	}
 
 }

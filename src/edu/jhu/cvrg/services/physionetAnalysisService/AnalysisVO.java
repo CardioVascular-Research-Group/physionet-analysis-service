@@ -10,13 +10,14 @@ public class AnalysisVO {
 	private String userId;
 	private long groupId;
 	private long folderId;
-	private long jobId;
+	private String jobId;
 	private String subjectId;
 	private PhysionetMethods algorithm;
-	private String[] fileName;
+	private String[] inputFileNames;
+	private String[] outputFileNames;
 	public Map<String, Object> commandParamMap;
 	
-	public AnalysisVO(long jobId, String userId, long groupId, long folderId, String subjectId, PhysionetMethods algorithm, String[] fileName, Map<String, Object> commandParamMap) {
+	public AnalysisVO(String jobId, String userId, long groupId, long folderId, String subjectId, PhysionetMethods algorithm, String[] inputFileNames, Map<String, Object> commandParamMap) {
 		super();
 		this.userId = userId;
 		this.groupId = groupId;
@@ -24,14 +25,12 @@ public class AnalysisVO {
 		this.jobId = jobId;
 		this.subjectId = subjectId;
 		this.algorithm = algorithm;
-		this.fileName = fileName;
+		this.inputFileNames = inputFileNames;
 		if(commandParamMap == null){
 			this.commandParamMap = new HashMap<String, Object>();
 		}else{
 			this.commandParamMap = commandParamMap;	
 		}
-			
-		
 	}
 
 	public String getUserId() {
@@ -51,7 +50,7 @@ public class AnalysisVO {
 	}
 
 	public String[] getFileNames() {
-		return fileName;
+		return inputFileNames;
 	}
 
 	public Map<String, Object> getCommandParamMap() {
@@ -62,8 +61,16 @@ public class AnalysisVO {
 		return folderId;
 	}
 
-	public long getJobId() {
+	public String getJobId() {
 		return jobId;
+	}
+
+	public String[] getOutputFileNames() {
+		return outputFileNames;
+	}
+
+	public void setOutputFileNames(String[] outputFileNames) {
+		this.outputFileNames = outputFileNames;
 	}
 	
 }

@@ -18,7 +18,8 @@ public class AlgorithmDetailLookup_sqrs {
 		//-----------  sqrs -----------
 		//-------------------------------------------------
 		//details.iWebServiceID = 0;
-		debugPrintln(" - Loading sqrs Type2 details."); 
+		debugPrintln(" - Loading sqrs Type2 details.");
+		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
 		details.sServiceMethod = "sqrsWrapperType2";
 		details.sDisplayShortName = "sqrs";

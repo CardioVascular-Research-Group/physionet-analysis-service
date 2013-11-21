@@ -22,6 +22,7 @@ public class AlgorithmDetailLookup_rdsamp {
 		//-------------------------------------------------
 		debugPrintln(" - Loading rdsamp details. 1/16/2013");  
 		try {
+			details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 			details.sServiceName = "physionetAnalysisService";
 			details.sServiceMethod = "rdsampWrapperType2";
 			details.sDisplayShortName = "rdsamp";

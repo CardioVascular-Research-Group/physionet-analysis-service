@@ -250,24 +250,23 @@ public class Physionet {
 		PhysionetExecute execute = new PhysionetExecute(analysis);
 		
 		//************* Calls the wrapper of the analysis algorithm. *********************
-		String[] asOutputFileHandles = null;
 		
 		switch (method) {
-			case ANN2RR: 	asOutputFileHandles = execute.executeV2_ann2rr();    break;
-			case CHESNOKOV:	asOutputFileHandles = execute.executeV2_chesnokov(); break;
-			case NGUESS:	asOutputFileHandles = execute.executeV2_nguess(); 	 break;
-			case PNNLIST:	asOutputFileHandles = execute.executeV2_pnnlist();   break;
-			case RDSAMP:	asOutputFileHandles = execute.executeV2_rdsamp();    break;
-			case SIGAAMP:	asOutputFileHandles = execute.executeV2_sigamp();    break;
-			case SQRS:		asOutputFileHandles = execute.executeV2_sqrs();      break;
-			case TACH:		asOutputFileHandles = execute.executeV2_tach();      break;
-			case WQRS:		asOutputFileHandles = execute.executeV2_wqrs();      break;
-			case WRSAMP:	asOutputFileHandles = execute.executeV2_wrsamp();    break;
+			case ANN2RR: 	analysis.setOutputFileNames(execute.executeV2_ann2rr());    break;
+			case CHESNOKOV:	analysis.setOutputFileNames(execute.executeV2_chesnokov()); break;
+			case NGUESS:	analysis.setOutputFileNames(execute.executeV2_nguess()); 	 break;
+			case PNNLIST:	analysis.setOutputFileNames(execute.executeV2_pnnlist());   break;
+			case RDSAMP:	analysis.setOutputFileNames(execute.executeV2_rdsamp());    break;
+			case SIGAAMP:	analysis.setOutputFileNames(execute.executeV2_sigamp());    break;
+			case SQRS:		analysis.setOutputFileNames(execute.executeV2_sqrs());      break;
+			case TACH:		analysis.setOutputFileNames(execute.executeV2_tach());      break;
+			case WQRS:		analysis.setOutputFileNames(execute.executeV2_wqrs());      break;
+			case WRSAMP:	analysis.setOutputFileNames(execute.executeV2_wrsamp());    break;
 			default:		break;
 		}
 		//************* Return value is an array of result files.    *********************
 		
-		return util.buildOmeReturnType2(util.getJobID(), asOutputFileHandles, method.getOmeName());
+		return util.buildOmeReturnType2(analysis);
 	}
 
 	private void debugPrintln(String text){

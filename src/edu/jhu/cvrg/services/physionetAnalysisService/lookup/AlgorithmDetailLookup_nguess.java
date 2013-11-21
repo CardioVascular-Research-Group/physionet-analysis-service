@@ -18,7 +18,8 @@ public class AlgorithmDetailLookup_nguess {
 		//-------------------------------------------------
 		//-----------  nguess  -----------
 		//-------------------------------------------------
-		debugPrintln(" - Loading nguess details.");  
+		debugPrintln(" - Loading nguess details.");
+		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
 		details.sServiceMethod = "nguessWrapperType2";
 		details.sDisplayShortName = "nguess";

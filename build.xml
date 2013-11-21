@@ -3,8 +3,6 @@
 
 <project name="physionet-analysis-service" basedir="." default="deployAnalysisService">
 	
-	<property name="projectName" value="nodeConversionService"/>
-	
 	<property name="liferay" value="/opt/liferay" />
 	<property name="liferay-sdk" value="${liferay}/liferay-plugins-sdk-6.1.1"/>
 	
@@ -36,16 +34,14 @@
 	
 	<target name="compileService" depends="cleanAll">
 
-		<!--
 		<mkdir dir="${dependencies}"/>
         <mkdir dir="${dependencies}/${ant.project.name}-dependencies"/>
     	<copy todir="${dependencies}/${ant.project.name}-dependencies">
     		<fileset dir="${dropbox.home}/jars/projects-dependencies/${ant.project.name}-dependencies">
 				<include name="*.jar"/>    		
     		</fileset>
-    	</copy> -->
+    	</copy>
     	
-		
 		<echo>Create the temporary area</echo>
 		<mkdir dir="build"/>
 		<mkdir dir="build/class"/>

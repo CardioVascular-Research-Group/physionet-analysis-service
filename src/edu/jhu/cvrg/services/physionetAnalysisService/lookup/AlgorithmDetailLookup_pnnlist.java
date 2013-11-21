@@ -19,7 +19,8 @@ public class AlgorithmDetailLookup_pnnlist {
 		//-------------------------------------------------
 		//-----------  pNNx  -----------
 		//-------------------------------------------------
-		debugPrintln(" - Loading pNNx details.");  
+		debugPrintln(" - Loading pNNx details.");
+		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
 		details.sServiceMethod = "pnnlistWrapperType2";
 		details.sDisplayShortName = "pnnlist/pNNx";

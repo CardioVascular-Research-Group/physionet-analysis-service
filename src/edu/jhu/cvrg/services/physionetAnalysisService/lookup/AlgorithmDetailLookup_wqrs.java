@@ -19,7 +19,8 @@ public class AlgorithmDetailLookup_wqrs {
 		//-----------  wqrs -----------
 		//-------------------------------------------------
 		//details.iWebServiceID = 0;
-		debugPrintln(" - Loading wqrs Type2 details."); 
+		debugPrintln(" - Loading wqrs Type2 details.");
+		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
 		details.sServiceMethod = "wqrsWrapperType2";
 		details.sDisplayShortName = "wqrs";

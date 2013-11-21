@@ -17,7 +17,8 @@ public class AlgorithmDetailLookup_chesnokovV1 {
 		//-------------------------------------------------
 		//-----------  chesnokov  -----------
 		//-------------------------------------------------
-		debugPrintln(" - Loading chesnokov details.");  
+		debugPrintln(" - Loading chesnokov details.");
+		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
 		details.sServiceMethod = "chesnokovWrapperType2";
 		details.sDisplayShortName = "QT Screening";

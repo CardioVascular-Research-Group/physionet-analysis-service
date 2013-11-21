@@ -19,7 +19,8 @@ public class AlgorithmDetailLookup_sigamp {
 		//-----------  sigamp  -----------
 		//-------------------------------------------------
 		//details.iWebServiceID = 0;
-		debugPrintln(" - Loading sigamp details.");  
+		debugPrintln(" - Loading sigamp details.");
+		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
 		details.sServiceMethod = "sigampWrapperType2";
 		details.sDisplayShortName = "sigamp";
