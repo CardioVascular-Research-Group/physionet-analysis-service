@@ -174,14 +174,20 @@ public class AnalysisUtils {
 	
 			// Converts the array of filenames to a single "^" delimited String for output.
 			if (errorMessage.length() == 0){
-				addOMEChild("filecount", new Long(analysis.getOutputFileNames().length).toString(),omeReturn,omFactory,omNs);
-				omeReturn.addChild( makeOutputOMElement(analysis.getOutputFileNames(), "filenamelist", "filename", omFactory, omNs) );
-				addOMEChild("jobID", analysis.getJobId(), omeReturn, omFactory, omNs);
+				ServiceUtils.addOMEChild("filecount", new Long(analysis.getOutputFileNames().length).toString(),omeReturn,omFactory,omNs);
+				omeReturn.addChild( ServiceUtils.makeOutputOMElement(analysis.getOutputFileNames(), "filenamelist", "filename", omFactory, omNs) );
+				ServiceUtils.addOMEChild("jobID", analysis.getJobId(), omeReturn, omFactory, omNs);
 				
-				sendResultsBack(analysis);
+				OMElement result = sendResultsBack(analysis);
+				
+				
+				Map<String, OMElement> params = ServiceUtils.extractParams(result);
+				
+				omeReturn.addChild(params.get("fileList"));
+				
 				
 			}else{
-				addOMEChild("error","If analysis failed, put your message here: \"" + errorMessage + "\"",omeReturn,omFactory,omNs);
+				ServiceUtils.addOMEChild("error","If analysis failed, put your message here: \"" + errorMessage + "\"",omeReturn,omFactory,omNs);
 			}
 		} catch (Exception e) {
 			errorMessage = "genericWrapperType2 failed.";
@@ -191,13 +197,14 @@ public class AnalysisUtils {
 		return omeReturn;
 	}
 	
-	private void sendResultsBack(AnalysisVO analysis) {
+	private OMElement sendResultsBack(AnalysisVO analysis) {
 		
 		Map<String, String> parameterMap = new HashMap<String, String>();
 		
 		parameterMap.put("jobID", analysis.getJobId());
 		parameterMap.put("groupID", String.valueOf(analysis.getGroupId()));
 		parameterMap.put("folderID", String.valueOf(analysis.getFolderId()));
+		parameterMap.put("userID", String.valueOf(analysis.getUserId()));
 		
 		String fileNames = "";
 		for (String name : analysis.getOutputFileNames()) {
@@ -207,7 +214,9 @@ public class AnalysisUtils {
 		
 		ServiceProperties props = ServiceProperties.getInstance();
 		
-		WebServiceUtility.callWebService(parameterMap, props.getProperty("dataTransferServiceMethod"), props.getProperty("dataTransferServiceName"), props.getProperty("dataTransferServiceURL"), null);
+		return WebServiceUtility.callWebService(parameterMap, props.getProperty(ServiceProperties.DATATRANSFER_SERVICE_METHOD), props.getProperty(ServiceProperties.DATATRANSFER_SERVICE_NAME), props.getProperty(ServiceProperties.DATATRANSFER_SERVICE_URL), null);
+		
+		
 		
 	}
 
@@ -221,63 +230,27 @@ public class AnalysisUtils {
 			for (AnalysisVO analysisVO : analysisSet) {
 				OMElement omeAnalysis = omFactory.createOMElement("job", omNs);
 				
-				addOMEChild("subjectID", analysisVO.getSubjectId(), omeAnalysis, omFactory,omNs);
-				addOMEChild("algorithm", analysisVO.getAlgorithm().getName(), omeAnalysis, omFactory,omNs);
-				addOMEChild("status", "started", omeAnalysis, omFactory,omNs);
+				ServiceUtils.addOMEChild("subjectID", analysisVO.getSubjectId(), omeAnalysis, omFactory,omNs);
+				ServiceUtils.addOMEChild("algorithm", analysisVO.getAlgorithm().getName(), omeAnalysis, omFactory,omNs);
+				ServiceUtils.addOMEChild("status", "started", omeAnalysis, omFactory,omNs);
 				
 				omeReturn.addChild(omeAnalysis);
 			}
 		} catch (Exception e) {
 			errorMessage = returnOMEName + " failed. "+ e.getMessage();
-			addOMEChild("status", errorMessage, omeReturn, omFactory, omNs);
+			ServiceUtils.addOMEChild("status", errorMessage, omeReturn, omFactory, omNs);
 			log.error(errorMessage);
 		}
 		return omeReturn;
 	}
 
 
-	/** Converts the array of output (relative) filenames to a single OMElement whose sub-elements are the filenames.
-	 * 
-	 * @param asFileNames - array of (relative) file path/name strings.
-	 * @return - a single OMElement containing the path/names.
-	 */
-	private OMElement makeOutputOMElement(String[] asFileNames, String sParentOMEName, String sChildOMEName, OMFactory omFactory, OMNamespace omNs){
-		debugPrintln("makeOutputOMElement()" + asFileNames.length + " file names");
-		OMElement omeArray = null;
-		if (asFileNames != null) {
-			try {
-				omeArray = omFactory.createOMElement(sParentOMEName, omNs); 
-				
-				for(int i=0; i<asFileNames.length;i++){
-					addOMEChild(sChildOMEName, asFileNames[i], omeArray,omFactory,omNs);					
-				}
-			}catch(Exception e){
-				log.error(e.getMessage());
-			}
-		}
-		return omeArray;
-	}
-	
-	/** Wrapper around the 3 common functions for adding a child element to a parent OMElement.
-	 * 
-	 * @param name - name/key of the child element
-	 * @param value - value of the new element
-	 * @param parent - OMElement to add the child to.
-	 * @param factory - OMFactory
-	 * @param dsNs - OMNamespace
-	 */
-	private void addOMEChild(String name, String value, OMElement parent, OMFactory factory, OMNamespace dsNs){
-		OMElement child = factory.createOMElement(name, dsNs);
-		child.addChild(factory.createOMText(value));
-		parent.addChild(child);
-	}
-	
 	/** Moves the files listed in the array from the source root directory to Liferay.
 	 * 
 	 * @param fileNames - array of full file path/name strings.
 	 * @return - array of the new full file path/name strings.
 	 */
-	protected static String[] moveFiles(String[] fileNames, long groupId, long folderId){
+	protected static String[] moveFiles(String[] fileNames, long groupId, long folderId, long userId){
 		String errorMessage = "";
 		debugPrintln("moveFiles() from: local to: liferay");
 		if (fileNames != null) {
@@ -290,7 +263,7 @@ public class AnalysisUtils {
 					
 					String path = ServiceUtils.extractPath(fileNames[i]);
 					
-					ServiceUtils.sendToLiferay(groupId, folderId, path, orign.getName(), orign.length(), fis);
+					ServiceUtils.sendToLiferay(groupId, folderId, userId, path, orign.getName(), orign.length(), fis);
 					
 					iMovedCount++;
 				}

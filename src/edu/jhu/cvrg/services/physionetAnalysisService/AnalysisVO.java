@@ -73,4 +73,8 @@ public class AnalysisVO {
 		this.outputFileNames = outputFileNames;
 	}
 	
+	public String getJobIdNumber(){
+		return this.getJobId().replaceAll("\\D", "");
+	}
+	
 }
