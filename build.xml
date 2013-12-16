@@ -36,11 +36,11 @@
 
 		<mkdir dir="${dependencies}"/>
         <mkdir dir="${dependencies}/${ant.project.name}-dependencies"/>
-    	<copy todir="${dependencies}/${ant.project.name}-dependencies">
+    	<!--<copy todir="${dependencies}/${ant.project.name}-dependencies">
     		<fileset dir="${dropbox.home}/jars/projects-dependencies/${ant.project.name}-dependencies">
 				<include name="*.jar"/>    		
     		</fileset>
-    	</copy>
+    	</copy> -->
     	
 		<echo>Create the temporary area</echo>
 		<mkdir dir="build"/>
