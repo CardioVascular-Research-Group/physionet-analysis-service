@@ -150,17 +150,13 @@ public class AlgorithmDetailLookup_wqrs {
 		//-------------
 		  
 		debugPrintln(" - - Loading wqrs afOutFileTypes"); 
-		details.afOutFileTypes = new FileTypes[2];
-		  for(int f=0; f<2;f++){
+		details.afOutFileTypes = new FileTypes[1];
+		  for(int f=0; f<1;f++){
 			  details.afOutFileTypes[f] = new FileTypes();
 		  }
 		  details.afOutFileTypes[0].sName="WFDBqrsAnnotation";
 		  details.afOutFileTypes[0].sExtension="qrs";
 		  details.afOutFileTypes[0].sDisplayShortName = "qrs Annotation";
-		//-------------
-		  details.afOutFileTypes[1].sName="WFDBAnnotationText";
-		  details.afOutFileTypes[1].sExtension = "txt";
-		  details.afOutFileTypes[1].sDisplayShortName = "WFDB Annotation Text";
 		//-------------
 			  
 
