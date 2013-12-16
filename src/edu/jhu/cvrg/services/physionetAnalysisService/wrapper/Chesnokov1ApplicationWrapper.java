@@ -3,13 +3,18 @@ package edu.jhu.cvrg.services.physionetAnalysisService.wrapper;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.jdom.Document;
@@ -20,6 +25,7 @@ import org.jdom.transform.XSLTransformer;
 
 import edu.jhu.cvrg.waveform.service.ApplicationWrapper;
 import edu.jhu.cvrg.waveform.service.ServiceProperties;
+import edu.jhu.cvrg.waveform.service.ServiceUtils;
 
 public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	
@@ -37,7 +43,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	 * 
 	 * @return
 	 */	
-	public boolean chesnokovV1(String sInputFile, String sPath, String sOutputName){
+	public synchronized boolean chesnokovV1(String sInputFile, String sPath, String sOutputName){
 		boolean bRet = true;
 		debugPrintln("chesnokovV1()");
 		debugPrintln("- sInputFile:" + sInputFile);
@@ -48,18 +54,25 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 		// exec can be used to specify the working directory.
 		String[] asEnvVar = new String[0];  
 
+		Set<String> tempFiles = null;
+		
 		try{
 			// execute Chesnokov analysis.
 			String chesnokovOutputFilenameXml = sInputFile.substring(0, sInputFile.lastIndexOf(".") + 1) + "xml";
 
 			ServiceProperties prop = ServiceProperties.getInstance();
 			
-			String wineCommand = prop.getProperty("wine.command");
-			String chesnokovHome = prop.getProperty("chesnokov.home");
-			String chesnokovComand = prop.getProperty("chesnokov.command");
-			String chesnokovFilters = prop.getProperty("chesnokov.filters");
 			
-			String sCommand = wineCommand + " " + chesnokovComand + " " + chesnokovFilters + " " + sPath + sInputFile + " " + sPath + chesnokovOutputFilenameXml; // add parameters for "input file" and "output file"
+			String chesnokovHome = prop.getProperty(ServiceProperties.CHESNOKOV_HOME);
+			
+			tempFiles = this.copyFilesToChesnokovFolder(sPath, chesnokovHome);
+			
+			String wineCommand = prop.getProperty(ServiceProperties.WINE_COMMAND);
+			
+			String chesnokovComand = prop.getProperty(ServiceProperties.CHESNOKOV_COMMAND);
+			String chesnokovFilters = prop.getProperty(ServiceProperties.CHESNOKOV_FILTERS);
+			
+			String sCommand = wineCommand + " " + chesnokovComand + " " + chesnokovFilters + " " + sInputFile + " " + chesnokovOutputFilenameXml; // add parameters for "input file" and "output file"
 
 			bRet = executeCommand(sCommand, asEnvVar, chesnokovHome);
 			
@@ -73,13 +86,13 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 			if(bRet){			
 				try {
 					debugPrintln("calling chesnokovToCSV(chesnokovOutputFilename)");
-					chesnokovCSVFilepath = chesnokovToCSV(sPath + chesnokovOutputFilenameXml, sPath + sInputFile, sOutputName);
+					
+					chesnokovCSVFilepath = chesnokovToCSV(chesnokovHome + File.separator + chesnokovOutputFilenameXml, chesnokovHome + File.separator + sInputFile, sOutputName, sPath);
 					debugPrintln("----------------------------");
 					File csvFile = new File(chesnokovCSVFilepath);
 					bRet = csvFile.exists();
 					if(bRet){
-						File xmlFile = new File(sPath + chesnokovOutputFilenameXml);
-						xmlFile.delete();
+						ServiceUtils.deleteFile(chesnokovHome, chesnokovOutputFilenameXml);
 					}
 					
 				}catch(Exception e) {
@@ -96,20 +109,69 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 		} catch (Exception e) {
 			bRet = false;
 			e.printStackTrace();
+		}finally{
+			deleteTempFiles(tempFiles);
 		}
 
 
 		return bRet;
 	}
 		
+	private void deleteTempFiles(Set<String> tempFiles) {
+		if(tempFiles != null){
+			for (String fileName : tempFiles) {
+				ServiceUtils.deleteFile(fileName);
+			}
+		}
+	}
+
+
+	private Set<String> copyFilesToChesnokovFolder(String sPath, String chesnokovHome) {
+		
+		Set<String> tmpFileNames = new HashSet<String>();
+		File originPath = new File(sPath);
+		
+		for(File file : originPath.listFiles()){
+			
+			File outputFile = new File(chesnokovHome + File.separator + file.getName());
+			try {
+				
+				InputStream fileToSave = new FileInputStream(file);
+				
+				OutputStream fOutStream = new FileOutputStream(outputFile);
+
+				int read = 0;
+				byte[] bytes = new byte[1024];
+
+				while ((read = fileToSave.read(bytes)) != -1) {
+					fOutStream.write(bytes, 0, read);
+				}
+
+				fileToSave.close();
+				fOutStream.flush();
+				fOutStream.close();
+				
+				tmpFileNames.add(outputFile.getAbsolutePath());
+			} catch (IOException e) {
+				log.error("Error on sendToLiferay: "+e.getMessage());
+			}finally{
+				log.info("File created? " + outputFile.exists());
+			}
+		}
+		
+		return tmpFileNames;
+	}
+
+
 	/** Converts the Chesnokov output file (XML) into a CSV format.
 	 * 
 	 * @param fileName - Chesnokov output file (XML) 
 	 * @param fileAnalyzedTempName
-	 * @param fileAnalyzedFinalName
+	 * @param outputFileName
+	 * @param outputPath 
 	 * @return
 	 */
-	public String chesnokovToCSV(String fileName, String fileAnalyzedTempName, String fileAnalyzedFinalName) {
+	public String chesnokovToCSV(String chesnokovFilename, String fileAnalyzedTempName, String outputFileName, String outputPath) {
 		Document xmlDoc = null;
         Document transformed = null;
         InputStream xsltIS = null;
@@ -118,7 +180,6 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
     	String xhtml = null;
     	BufferedReader in = null;
     	StringBuffer sb = new StringBuffer();
-        String chesnokovFilename = fileName;
         String csvOutputFilename = "";
         debugPrintln(" ** converting " + chesnokovFilename);
    		try {
@@ -143,10 +204,10 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 			xhtml = xhtml.substring(truncPosition, xhtml.length());
 			xhtml = xhtml.replaceAll("<html>", "");
 			xhtml = xhtml.replaceAll("</html>", "");
-			csvOutputFilename = chesnokovFilename.replaceAll(".xml", ".csv");
+			csvOutputFilename = outputPath + outputFileName + ".csv";
 
-			debugPrintln(" ** replacing : " + fileAnalyzedTempName + " with: " + fileAnalyzedFinalName);
-			xhtml = xhtml.replaceAll(fileAnalyzedTempName, fileAnalyzedFinalName);
+			debugPrintln(" ** replacing : " + fileAnalyzedTempName + " with: " + outputFileName);
+			xhtml = xhtml.replaceAll(fileAnalyzedTempName, outputFileName);
 
 			debugPrintln(" ** writing " + csvOutputFilename);
 			BufferedWriter out = new BufferedWriter(new FileWriter(csvOutputFilename));
