@@ -27,7 +27,6 @@ public class PhysionetExecute extends Thread{
 	
 	@Override
 	public void run() {
-		//TODO [VILARDO] create analysis job on database
 		
 		String[] asOutputFileHandles = null;
 		//perform the analyze
@@ -47,7 +46,7 @@ public class PhysionetExecute extends Thread{
 		
 		if(errorMessage.length() == 0){
 			//send the result files
-			AnalysisUtils.moveFiles(asOutputFileHandles, analysis.getGroupId(), analysis.getFolderId());
+			AnalysisUtils.moveFiles(asOutputFileHandles, analysis.getGroupId(), analysis.getFolderId(), Long.valueOf(analysis.getUserId()));
 		}
 		
 		
@@ -96,7 +95,7 @@ public class PhysionetExecute extends Thread{
 			boolean status = cWFDB.ann2rr(sInputName, sInputPath, 
 					sAnnotator, allIntervals, consecutive, startTime, 
 					intervalFormat, mneumonicsEnd, mneumonicsBegin, endTime, finalTimesFormat, 
-					initialTimesFormat, finalAnnotations, initialAnnotations, sInputName);
+					initialTimesFormat, finalAnnotations, initialAnnotations, sInputName + '_' + analysis.getJobId());
 
 			//*** If the analysis fails, this method should return a null.
 			debugPrintln("- status: " + status);
@@ -136,13 +135,22 @@ public class PhysionetExecute extends Thread{
 				dQInterval	= Double.parseDouble( (String) analysis.getCommandParamMap().get("f"));    // -f	
 			}
 			
-			String 	sOutputFile	= (String) analysis.getCommandParamMap().get("o"); // -o  // In this case, this variable defines the extension, not the filename
-			
 			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
 			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
+			
+			String 	sOutputFile = null;
+			if( analysis.getCommandParamMap().get("o") != null){
+				sOutputFile = (String) analysis.getCommandParamMap().get("o"); // -o  // In this case, this variable defines the extension, not the filename
+			}else{
+				int index = sInputName.lastIndexOf(".");
+				sOutputFile = sInputName.substring(0, index);
+			}
+			
+			sOutputFile = sOutputFile + '_' + analysis.getJobId(); 
+			
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
 			
@@ -198,12 +206,16 @@ public class PhysionetExecute extends Thread{
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
+			
+			
+			String outputName = sInputName.substring(0, sInputName.lastIndexOf(".")) + '_' + analysis.getJobId();
+			
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
 			
 			debugPrintln("- entering pnnlist()");
 			boolean status = cWFDB.pnnlist(sInputName, sInputPath, iStartTime, iEndTime,
-					sAnnotator, iInc, bPercents, bSeparateDistributions, sInputName.substring(0, sInputName.lastIndexOf(".")));
+					sAnnotator, iInc, bPercents, bSeparateDistributions, outputName);
 
 			//*** If the analysis fails, this method should return a null.
 			debugPrintln("- status: " + status);
@@ -280,11 +292,15 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sHeaderPath: " + sHeaderPath);
 			debugPrintln("- sHeaderName: " + sHeaderName);
+			
+			int iIndexPeriod = sHeaderName.lastIndexOf(".");
+			String outputName = sHeaderName.substring(0, iIndexPeriod) + '_' + analysis.getJobId();
+			
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
 
 			debugPrintln("- entering sigamp()");
-			boolean status = cWFDB.sigamp(sHeaderName, sHeaderPath, iBegin, sInputAnnotator, dDeltaMeasureStart, dDeltaMeasureEnd, bHighRez, iNmax, iTime, dDeltaTimeWin, bVerbose, bQuickmode, bPrintPhysUnits, bPrintDay, bPrintElapsed, bPrintHours, bPrintMinutes, bPrintSeconds, bPrintSamples);
+			boolean status = cWFDB.sigamp(sHeaderName, sHeaderPath, iBegin, sInputAnnotator, dDeltaMeasureStart, dDeltaMeasureEnd, bHighRez, iNmax, iTime, dDeltaTimeWin, bVerbose, bQuickmode, bPrintPhysUnits, bPrintDay, bPrintElapsed, bPrintHours, bPrintMinutes, bPrintSeconds, bPrintSamples, outputName);
 
 			//*** If the analysis fails, this method should return a null.
 			if(status==false){
@@ -350,8 +366,9 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sHeaderPath: " + sHeaderPath);
 			debugPrintln("- sHeaderName: " + sHeaderName);
+			
 			//*** Insert the call to the analysis algorithm here:	
-			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
+			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper(analysis.getJobIdNumber());
 
 			debugPrintln("- entering sqrs()");
 			boolean status = cWFDB.sqrs(sHeaderName, sHeaderPath, iBegin, bHighrez, iThreshold, sSignal, iTime);
@@ -424,8 +441,9 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sHeaderPath: " + sHeaderPath);
 			debugPrintln("- sHeaderName: " + sHeaderName);
+			
 			//*** Insert the call to the analysis algorithm here:	
-			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
+			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper(analysis.getJobIdNumber());
 
 			debugPrintln("- entering wqrs()");
 			boolean status = cWFDB.wqrs(sHeaderName, sHeaderPath, bDumpRaw, iBegin, bPrintHelp, bHighrez, bFindJPoints, iThreshold, iPowerFreq, bResample, sSignal, iTime, bVerbose);
@@ -483,12 +501,17 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sHeaderPath: " + sHeaderPath);
 			debugPrintln("- sHeaderName: " + sHeaderName);
+			
+			int index = sHeaderName.lastIndexOf(".");
+			String outputName = sHeaderName.substring(0, index) + "_rdsamp_" + analysis.getJobId() ;
+			
+			
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
 			
 			debugPrintln("- entering rdsamp()");
 			boolean status = cWFDB.rdsamp(sHeaderName, sHeaderPath, bCsv, iStarttime, bSummary, bHighrez, dInterval, 
-					sFormatOutput, sSignallist, sFirstsignal, iEndtime, bColumnheads, bXML);
+					sFormatOutput, sSignallist, sFirstsignal, iEndtime, bColumnheads, bXML, outputName);
 
 			//*** If the analysis fails, this method should return a null.
 			debugPrintln("- status: " + status);
@@ -560,7 +583,7 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sInputName: " + sInputName);
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
-			String sOutputFile = "";  // this should be the same name as the input file for this particular function
+			String sOutputFile = "_tach_" + analysis.getJobId();  // this should be the same name as the input file for this particular function
 
 			debugPrintln("- entering tach()");
 			boolean status = cWFDB.tach(sInputName, sInputPath, sAnnotator, iStartTime, iFrequency, iRate, iDuration, iOutputSamples, bOutlier, iSmoothing, iEndTime, bSampleNumber, bOutputSeconds1, bOutputMinutes, bOutputHours, sOutputFile);
@@ -624,10 +647,13 @@ public class PhysionetExecute extends Thread{
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
+			
+			int iIndexPeriod = sInputName.lastIndexOf(".");
+			String sOutputFile = sInputName.substring(0, iIndexPeriod) + "_wrsamp_" + analysis.getJobId(); // this should be the same name as the input file for this particular function
+			
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
-			String sOutputFile = "";  // this should be the same name as the input file for this particular function
-
+			
 			debugPrintln("- entering wrsamp()");
 			boolean status = cWFDB.wrsamp(sInputName, sInputPath, bCheckInput, bDither, iCopyStart, iSampleFrequency, iCharacters, sRecordName, sFormat, cLineSeparator, cFieldSeparator, iLineStop, dMultiply, bNoZero, sOutputFile);
 
@@ -661,7 +687,7 @@ public class PhysionetExecute extends Thread{
 
 			//*** Insert the call to the analysis algorithm here:	
 			Chesnokov1ApplicationWrapper cChesnokov =  new Chesnokov1ApplicationWrapper();
-			String sOutputFile = sDatName + "_chesnokov1";  // This will become the name of the CSV file
+			String sOutputFile = sDatName + "_chesnokov1"  + '_' + analysis.getJobId();  // This will become the name of the CSV file
 
 			debugPrintln("- entering chesnokovV1()");
 			boolean status = cChesnokov.chesnokovV1(sDatName, sDatPath, sOutputFile);
