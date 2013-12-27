@@ -95,7 +95,7 @@ public class PhysionetExecute extends Thread{
 			boolean status = cWFDB.ann2rr(sInputName, sInputPath, 
 					sAnnotator, allIntervals, consecutive, startTime, 
 					intervalFormat, mneumonicsEnd, mneumonicsBegin, endTime, finalTimesFormat, 
-					initialTimesFormat, finalAnnotations, initialAnnotations, sInputName + '_' + analysis.getJobId());
+					initialTimesFormat, finalAnnotations, initialAnnotations, sInputName + '_' + analysis.getJobIdNumber());
 
 			//*** If the analysis fails, this method should return a null.
 			debugPrintln("- status: " + status);
@@ -149,7 +149,7 @@ public class PhysionetExecute extends Thread{
 				sOutputFile = sInputName.substring(0, index);
 			}
 			
-			sOutputFile = sOutputFile + '_' + analysis.getJobId(); 
+			sOutputFile = sOutputFile + '_' + analysis.getJobIdNumber(); 
 			
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
@@ -208,7 +208,7 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sInputName: " + sInputName);
 			
 			
-			String outputName = sInputName.substring(0, sInputName.lastIndexOf(".")) + '_' + analysis.getJobId();
+			String outputName = sInputName.substring(0, sInputName.lastIndexOf(".")) + '_' + analysis.getJobIdNumber();
 			
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
@@ -294,7 +294,7 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sHeaderName: " + sHeaderName);
 			
 			int iIndexPeriod = sHeaderName.lastIndexOf(".");
-			String outputName = sHeaderName.substring(0, iIndexPeriod) + '_' + analysis.getJobId();
+			String outputName = sHeaderName.substring(0, iIndexPeriod) + '_' + analysis.getJobIdNumber();
 			
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
@@ -503,7 +503,7 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sHeaderName: " + sHeaderName);
 			
 			int index = sHeaderName.lastIndexOf(".");
-			String outputName = sHeaderName.substring(0, index) + "_rdsamp_" + analysis.getJobId() ;
+			String outputName = sHeaderName.substring(0, index) + '_' + analysis.getJobIdNumber() ;
 			
 			
 			//*** Insert the call to the analysis algorithm here:	
@@ -583,7 +583,8 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sInputName: " + sInputName);
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
-			String sOutputFile = "_tach_" + analysis.getJobId();  // this should be the same name as the input file for this particular function
+			int iIndexPeriod = sInputName.lastIndexOf(".");
+			String sOutputFile = sInputName.substring(0, iIndexPeriod) + "_" + analysis.getJobIdNumber();  // this should be the same name as the input file for this particular function
 
 			debugPrintln("- entering tach()");
 			boolean status = cWFDB.tach(sInputName, sInputPath, sAnnotator, iStartTime, iFrequency, iRate, iDuration, iOutputSamples, bOutlier, iSmoothing, iEndTime, bSampleNumber, bOutputSeconds1, bOutputMinutes, bOutputHours, sOutputFile);
@@ -649,7 +650,7 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- sInputName: " + sInputName);
 			
 			int iIndexPeriod = sInputName.lastIndexOf(".");
-			String sOutputFile = sInputName.substring(0, iIndexPeriod) + "_wrsamp_" + analysis.getJobId(); // this should be the same name as the input file for this particular function
+			String sOutputFile = sInputName.substring(0, iIndexPeriod) + "_" + analysis.getJobIdNumber(); // this should be the same name as the input file for this particular function
 			
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
@@ -687,7 +688,8 @@ public class PhysionetExecute extends Thread{
 
 			//*** Insert the call to the analysis algorithm here:	
 			Chesnokov1ApplicationWrapper cChesnokov =  new Chesnokov1ApplicationWrapper();
-			String sOutputFile = sDatName + "_chesnokov1"  + '_' + analysis.getJobId();  // This will become the name of the CSV file
+			int iIndexPeriod = sDatName.lastIndexOf(".");
+			String sOutputFile = sDatName.substring(0, iIndexPeriod) + '_' + analysis.getJobIdNumber();  // This will become the name of the CSV file
 
 			debugPrintln("- entering chesnokovV1()");
 			boolean status = cChesnokov.chesnokovV1(sDatName, sDatPath, sOutputFile);
