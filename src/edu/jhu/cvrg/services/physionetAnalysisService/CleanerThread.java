@@ -1,19 +1,20 @@
 package edu.jhu.cvrg.services.physionetAnalysisService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import edu.jhu.cvrg.waveform.service.ServiceUtils;
 
 public class CleanerThread extends Thread{
 	
-	private Map<String, String[]> files = new HashMap<String, String[]>();
+	private Map<String, List<String>> files = new HashMap<String, List<String>>();
 	
 	public CleanerThread(ThreadGroup group) {
 		super(group, "Cleaner");
 	}
 	
-	public void addFiles(String threadName, String[] files){
+	public void addFiles(String threadName, List<String> files){
 		this.files.put(threadName, files);
 	}
 
@@ -35,7 +36,7 @@ public class CleanerThread extends Thread{
 	
 	private void clean() {
 		for (String threadName : files.keySet()) {
-			String[] threadFileNames = files.get(threadName);
+			List<String> threadFileNames = files.get(threadName);
 			
 			for (String fileName : threadFileNames) {
 				ServiceUtils.deleteFile(fileName);

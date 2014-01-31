@@ -37,9 +37,9 @@ public class PhysionetExecute extends Thread{
 			case PNNLIST:	asOutputFileHandles = this.executeV2_pnnlist();   break;
 			case RDSAMP:	asOutputFileHandles = this.executeV2_rdsamp();    break;
 			case SIGAAMP:	asOutputFileHandles = this.executeV2_sigamp();    break;
-			case SQRS:		asOutputFileHandles = this.executeV2_sqrs();      break;
+			case SQRS:		asOutputFileHandles = this.executeV2_sqrs(true);  break;
 			case TACH:		asOutputFileHandles = this.executeV2_tach();      break;
-			case WQRS:		asOutputFileHandles = this.executeV2_wqrs();      break;
+			case WQRS:		asOutputFileHandles = this.executeV2_wqrs(true);  break;
 			case WRSAMP:	asOutputFileHandles = this.executeV2_wrsamp();    break;
 			default:		break;
 		}
@@ -83,8 +83,8 @@ public class PhysionetExecute extends Thread{
 			String sAnnotator = annotationFileName.substring(annotationFileName.lastIndexOf('.')+1);
 			
 			//**********************************************************************
-			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames().get(0));
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames().get(0));
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
@@ -111,7 +111,65 @@ public class PhysionetExecute extends Thread{
 			log.error(errorMessage + " " + e.getMessage());
 		}		
 		return asResult;
+	}
+	
+	
+	public String[] executeV2_rdann(){
+		debugPrintln("executeV2_rdann()");
+		String[] asResult=null;
+		try {
+			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
+			String 	elapsedTime		= (String) analysis.getCommandParamMap().get("e"); // -e
+			String 	beginTime		= (String) analysis.getCommandParamMap().get("f"); // -f
+			String 	num				= (String) analysis.getCommandParamMap().get("n"); // -n
+			//we can use more than one -p on command, but for now we will not support
+			String 	type			= (String) analysis.getCommandParamMap().get("p"); // -p
+			String 	subType			= (String) analysis.getCommandParamMap().get("s"); // -s
+			String 	stopTime		= (String) analysis.getCommandParamMap().get("t"); // -t
+			
+			Integer channel = null;
+			if(analysis.getCommandParamMap().get("c") != null){
+				channel	= Integer.valueOf((String) analysis.getCommandParamMap().get("c")); // -c
+			}
+			
+			boolean printSummary	= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("h")); // -h
+			boolean printColumnHeading	= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("v")); // -v
+			boolean useAlternativeTimeFormat = Boolean.parseBoolean((String) analysis.getCommandParamMap().get("x")); // -x
+			
+			String annotationFileName = AnalysisUtils.findPathNameExt(analysis.getFileNames(), ".atr.qrs.wqrs");
+			String sAnnotator = annotationFileName.substring(annotationFileName.lastIndexOf('.')+1);
+			
+			//**********************************************************************
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames().get(0));
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames().get(0));
+			
+			debugPrintln("- sInputPath: " + sInputPath);
+			debugPrintln("- sInputName: " + sInputName);
+			//*** Insert the call to the analysis algorithm here:	
+			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
+			
+			debugPrintln("- entering ann2rr()");
+			boolean status = cWFDB.rdann(sInputName, sInputPath, 
+					sAnnotator, channel, elapsedTime, beginTime, 
+					printSummary, num, type, subType, stopTime, 
+					printColumnHeading, useAlternativeTimeFormat, sInputName + '_' + analysis.getJobIdNumber());
+
+			//*** If the analysis fails, this method should return a null.
+			debugPrintln("- status: " + status);
+			if(status==false){			
+				asResult = null;
+			}else{
+				//*** Reformat(if necessary) the return values as one or more output files.
+				//*** Create a String array for the output.
+				asResult = cWFDB.getOutputFilenames();
+			}
+		} catch (Exception e) {
+			errorMessage = "executeV2_ann2rr() failed.";
+			log.error(errorMessage + " " + e.getMessage());
+		}		
+		return asResult;
 	}	
+
 	
 	public String[] executeV2_nguess(){
 		debugPrintln("executeV2_nguess()");
@@ -135,8 +193,8 @@ public class PhysionetExecute extends Thread{
 				dQInterval	= Double.parseDouble( (String) analysis.getCommandParamMap().get("f"));    // -f	
 			}
 			
-			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames().get(0));
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames().get(0));
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
@@ -201,8 +259,8 @@ public class PhysionetExecute extends Thread{
 			boolean bPercents				= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("p")); // -p Compute and output increments as percentage of initial intervals. 
 			boolean bSeparateDistributions	= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("s")); // -s Compute and output separate distributions of positive and negative intervals. 
 			
-			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames().get(0));
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames().get(0));
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
@@ -324,7 +382,7 @@ public class PhysionetExecute extends Thread{
 	 * @param inputFileNames - array of (absolute) input file path/name strings.
 	 * @return  - array of (absolute) output file path/name strings or null if the analysis fails.
 	 */
-	public String[] executeV2_sqrs(){
+	public String[] executeV2_sqrs(boolean rename){
 		debugPrintln("executeV2_sqrs()");
 		String[] asResultHandles=null;
 		try {
@@ -371,7 +429,7 @@ public class PhysionetExecute extends Thread{
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper(analysis.getJobIdNumber());
 
 			debugPrintln("- entering sqrs()");
-			boolean status = cWFDB.sqrs(sHeaderName, sHeaderPath, iBegin, bHighrez, iThreshold, sSignal, iTime);
+			boolean status = cWFDB.sqrs(sHeaderName, sHeaderPath, iBegin, bHighrez, iThreshold, sSignal, iTime, rename);
 
 			//*** If the analysis fails, this method should return a null.
 			if(!status){
@@ -397,7 +455,7 @@ public class PhysionetExecute extends Thread{
 	 * @param inputFileNames - array of (absolute) input file path/name strings.
 	 * @return  - array of (absolute) output file path/name strings or null if the analysis fails.
 	 */
-	public String[] executeV2_wqrs(){
+	public String[] executeV2_wqrs(boolean rename){
 		debugPrintln("executeV2_wqrs()");
 		String[] asResultHandles=null;
 		try {
@@ -446,7 +504,7 @@ public class PhysionetExecute extends Thread{
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper(analysis.getJobIdNumber());
 
 			debugPrintln("- entering wqrs()");
-			boolean status = cWFDB.wqrs(sHeaderName, sHeaderPath, bDumpRaw, iBegin, bPrintHelp, bHighrez, bFindJPoints, iThreshold, iPowerFreq, bResample, sSignal, iTime, bVerbose);
+			boolean status = cWFDB.wqrs(sHeaderName, sHeaderPath, bDumpRaw, iBegin, bPrintHelp, bHighrez, bFindJPoints, iThreshold, iPowerFreq, bResample, sSignal, iTime, bVerbose, rename);
 			debugPrintln("- wqrs() returned: " + status);
 			//*** If the analysis fails, this method should return a null.
 			if(status==false){
@@ -575,8 +633,8 @@ public class PhysionetExecute extends Thread{
 			boolean bOutputHours 	= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("Vh")); // -Vh Print the output sample time in hours
 			
 			//String sHeaderPathName = findHeaderPathName(asInputFileNames);
-			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames().get(0));
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames().get(0));
 			
 			//debugPrintln("- sHeaderPathName: " + sHeaderPathName);
 			debugPrintln("- sInputPath: " + sInputPath);
@@ -643,8 +701,8 @@ public class PhysionetExecute extends Thread{
 			}
 			 
 			//************************************************************************************************************			
-			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames()[0]);
-			String sInputName = ServiceUtils.extractName(analysis.getFileNames()[0]);
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames().get(0));
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames().get(0));
 			
 			debugPrintln("- sInputPath: " + sInputPath);
 			debugPrintln("- sInputName: " + sInputName);
@@ -713,4 +771,31 @@ public class PhysionetExecute extends Thread{
 		log.debug("-+ physionetAnalysisService.physionetExecuter + " + text);
 	}
 
+	public String[] executeV2_sqrs2csv() {
+		String[] result = executeV2_sqrs(false);
+		
+		String annotationFile = result[0];
+		
+		analysis.getFileNames().add(annotationFile);
+		
+		result = executeV2_rdann();
+		
+		ServiceUtils.deleteFile(annotationFile);
+		
+		return result;
+	}
+	
+	public String[] executeV2_wqrs2csv() {
+		String[] result = executeV2_wqrs(false);
+		
+		String annotationFile = result[0];
+		
+		analysis.getFileNames().add(annotationFile);
+				
+		result = executeV2_rdann();
+		
+		ServiceUtils.deleteFile(annotationFile);
+		
+		return result;
+	}
 }

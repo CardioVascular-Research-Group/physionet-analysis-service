@@ -2,9 +2,11 @@ package edu.jhu.cvrg.services.physionetAnalysisService;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -30,7 +32,7 @@ public class AnalysisUtils {
 	/** prefix parameter for OMNamespace.createOMNamespace() - the prefix<BR>e.g. physionetAnalysisService **/
 	private String sOMNameSpacePrefix =  "physionetAnalysisService";  
 	public Map<String, Object> mapCommandParam = null;
-	public String[] inputFileNames = null;
+	public List<String> inputFileNames = null;
 	private long folderID;
 	private long groupID;
 	
@@ -53,11 +55,11 @@ public class AnalysisUtils {
 			
 			String inputPath = ServiceUtils.SERVER_TEMP_ANALYSIS_FOLDER + sep + jobID;
 			StringTokenizer strToken = new StringTokenizer(params.get("fileNames").getText(), "^");
-			String[] fileNames = new String[strToken.countTokens()];
-			for (int i = 0; i < fileNames.length; i++) {
+			List<String> fileNames = new ArrayList<String>();
+			while (strToken.hasMoreTokens()) {
 				String name = strToken.nextToken();
 				//ServiceUtils.createTempLocalFile(params, name, userID, inputPath, name);
-				fileNames[i] = inputPath + sep + name;
+				fileNames.add(inputPath + sep + name);
 			}
 			
 			inputFileNames = fileNames;
@@ -105,10 +107,10 @@ public class AnalysisUtils {
 				String inputPath = ServiceUtils.SERVER_TEMP_ANALYSIS_FOLDER + sep +jobId;
 				
 				StringTokenizer strToken = new StringTokenizer(algorithm.get("fileNames").getText(), "^");
-				String[] fileNames = new String[strToken.countTokens()];
-				for (int i = 0; i < fileNames.length; i++) {
+				List<String> fileNames = new ArrayList<String>();
+				while (strToken.hasMoreTokens()) {
 					String name = strToken.nextToken();
-					fileNames[i] = inputPath + sep + name;
+					fileNames.add(inputPath + sep + name);
 					
 					ServiceUtils.createTempLocalFile(params, name, inputPath, name);
 				}
@@ -285,7 +287,7 @@ public class AnalysisUtils {
 	 * @param asInputFileNames - array of filenames to search
 	 * @return - full path/name.ext as found in the array.
 	 */
-	public static String findHeaderPathName(String[] asInputFileNames){
+	public static String findHeaderPathName(List<String> asInputFileNames){
 		debugPrintln("findHeaderPathName()");
 		return findPathNameExt(asInputFileNames, "hea");
 	}
@@ -296,14 +298,13 @@ public class AnalysisUtils {
 	 * @param sExtension - extension to look for, without the dot(".") e.g. "hea".
 	 * @return - full path/name.ext as found in the array.
 	 */
-	public static String findPathNameExt(String[] asInputFileNames, String sExtension){
+	public static String findPathNameExt(List<String> asInputFileNames, String sExtension){
 		debugPrintln("findHeaderPathName()");
-		String sHeaderPathName="", sTemp="";
+		String sHeaderPathName="";
 		int iIndexPeriod=0;
 		
-		for(int i=0;i<asInputFileNames.length;i++){
-			sTemp = asInputFileNames[i];
-			debugPrintln("- asInputFileNames[" + i + "]: " + asInputFileNames[i]);
+		for (String sTemp : asInputFileNames) {
+			debugPrintln("- asInputFileNames: " + sTemp);
 			iIndexPeriod = sTemp.lastIndexOf(".");
 			
 			if( sExtension.contains(sTemp.substring(iIndexPeriod+1)) ){
@@ -311,6 +312,7 @@ public class AnalysisUtils {
 				break;
 			}
 		}
+		
 		debugPrintln("- ssHeaderPathName: " + sHeaderPathName);
 		return sHeaderPathName;
 	}

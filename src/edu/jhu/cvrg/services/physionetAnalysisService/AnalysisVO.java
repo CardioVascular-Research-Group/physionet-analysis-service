@@ -1,6 +1,7 @@
 package edu.jhu.cvrg.services.physionetAnalysisService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import edu.jhu.cvrg.waveform.model.PhysionetMethods;
@@ -13,11 +14,11 @@ public class AnalysisVO {
 	private String jobId;
 	private String subjectId;
 	private PhysionetMethods algorithm;
-	private String[] inputFileNames;
+	private List<String> inputFileNames;
 	private String[] outputFileNames;
 	public Map<String, Object> commandParamMap;
 	
-	public AnalysisVO(String jobId, String userId, long groupId, long folderId, String subjectId, PhysionetMethods algorithm, String[] inputFileNames, Map<String, Object> commandParamMap) {
+	public AnalysisVO(String jobId, String userId, long groupId, long folderId, String subjectId, PhysionetMethods algorithm, List<String> inputFileNames, Map<String, Object> commandParamMap) {
 		super();
 		this.userId = userId;
 		this.groupId = groupId;
@@ -49,7 +50,7 @@ public class AnalysisVO {
 		return algorithm;
 	}
 
-	public String[] getFileNames() {
+	public List<String> getFileNames() {
 		return inputFileNames;
 	}
 

@@ -218,6 +218,17 @@ public class Physionet {
 		return callWrapper(param0, PhysionetMethods.CHESNOKOV);	
 	}
 	
+	public org.apache.axiom.om.OMElement sqrs2csvWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
+		
+		return callWrapper(param0, PhysionetMethods.SQRS2CSV);	
+	}
+	
+	public org.apache.axiom.om.OMElement wqrs2csvWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
+		
+		return callWrapper(param0, PhysionetMethods.WQRS2CSV);	
+	}
+
+	
 	public org.apache.axiom.om.OMElement performAnalysis(org.apache.axiom.om.OMElement e) throws Exception {
 		AnalysisUtils util = new AnalysisUtils();
 		
@@ -254,13 +265,15 @@ public class Physionet {
 		switch (method) {
 			case ANN2RR: 	analysis.setOutputFileNames(execute.executeV2_ann2rr());    break;
 			case CHESNOKOV:	analysis.setOutputFileNames(execute.executeV2_chesnokov()); break;
-			case NGUESS:	analysis.setOutputFileNames(execute.executeV2_nguess()); 	 break;
+			case NGUESS:	analysis.setOutputFileNames(execute.executeV2_nguess()); 	break;
 			case PNNLIST:	analysis.setOutputFileNames(execute.executeV2_pnnlist());   break;
 			case RDSAMP:	analysis.setOutputFileNames(execute.executeV2_rdsamp());    break;
 			case SIGAAMP:	analysis.setOutputFileNames(execute.executeV2_sigamp());    break;
-			case SQRS:		analysis.setOutputFileNames(execute.executeV2_sqrs());      break;
+			case SQRS:		analysis.setOutputFileNames(execute.executeV2_sqrs(true));  break;
+			case SQRS2CSV:	analysis.setOutputFileNames(execute.executeV2_sqrs2csv());  break;
 			case TACH:		analysis.setOutputFileNames(execute.executeV2_tach());      break;
-			case WQRS:		analysis.setOutputFileNames(execute.executeV2_wqrs());      break;
+			case WQRS:		analysis.setOutputFileNames(execute.executeV2_wqrs(true));  break;
+			case WQRS2CSV:	analysis.setOutputFileNames(execute.executeV2_wqrs2csv());  break;
 			case WRSAMP:	analysis.setOutputFileNames(execute.executeV2_wrsamp());    break;
 			default:		break;
 		}

@@ -23,6 +23,8 @@ public class AlgorithmDetailLookup {
 		AlgorithmDetailLookup_wqrs wqrs 		=  new AlgorithmDetailLookup_wqrs();
 		AlgorithmDetailLookup_wrsamp wrsamp 	= new AlgorithmDetailLookup_wrsamp();
 		AlgorithmDetailLookup_chesnokovV1 chesnokov = new AlgorithmDetailLookup_chesnokovV1();
+		AlgorithmDetailLookup_sqrs2csv sqrs2csv = new AlgorithmDetailLookup_sqrs2csv();
+		AlgorithmDetailLookup_wqrs2csv wqrs2csv = new AlgorithmDetailLookup_wqrs2csv();
 		
 		ann2rr.verbose = verbose;
 		chesnokov.verbose = verbose;
@@ -34,9 +36,11 @@ public class AlgorithmDetailLookup {
 		wqrs.verbose = verbose;
 		wrsamp.verbose = verbose;
 		tach.verbose = verbose;
+		sqrs2csv.verbose = verbose;
+		wqrs2csv.verbose = verbose;
 	
 //		manually alphabetized for now, it will automated later
-		serviceList = new AlgorithmServiceData[10];
+		serviceList = new AlgorithmServiceData[12];
  
 		serviceList[0] = ann2rr.getDetails_ann2rr();
 		serviceList[1] = chesnokov.getDetails_chesnokovV1();
@@ -45,9 +49,11 @@ public class AlgorithmDetailLookup {
 		serviceList[4] = rdsamp.getDetails_rdsamp();
 		serviceList[5] = sigamp.getDetails_sigamp();
 		serviceList[6] = sqrs.getDetails_sqrs();
-		serviceList[7] = tach.getDetails_tach();
-		serviceList[8] = wqrs.getDetails_wqrs();
-		serviceList[9] = wrsamp.getDetails_wrsamp();
+		serviceList[7] = sqrs2csv.getDetails_sqrs2csv();
+		serviceList[8] = tach.getDetails_tach();
+		serviceList[9] = wqrs.getDetails_wqrs();
+		serviceList[10] = wqrs2csv.getDetails_wqrs2csv();
+		serviceList[11] = wrsamp.getDetails_wrsamp();
 	
 
 		debugPrintln("AlgorithmDetailLookup.loadDetails() finished.");
