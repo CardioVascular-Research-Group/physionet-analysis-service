@@ -101,14 +101,18 @@ public class WFDBApplicationWrapper  extends ApplicationWrapper{
 			
 			if(bRet){
 				stdReturnHandler();
+				outputFilenames = new String[1];
 				
 				if(rename){
 					String finalName = sPath + sRecord + '_'+ jobId + ".qrs" ;
 					originFile.renameTo(new File(finalName));
+					outputFilenames[0] = finalName;
+				}else{
+					outputFilenames[0] = originFile.getAbsolutePath();	
 				}
 				
-				outputFilenames = new String[1];
-				outputFilenames[0] = originFile.getAbsolutePath();
+				
+				
 			}else{
 				debugPrintln("- Encountered errors.");
 			}
@@ -193,9 +197,10 @@ public class WFDBApplicationWrapper  extends ApplicationWrapper{
 				if(rename){
 					String finalName = sPath + sRecord + '_' + jobId + ".wqrs" ;
 					originFile.renameTo(new File(finalName));
+					outputFilenames[0] = finalName;
+				}else{
+					outputFilenames[0] = originFile.getAbsolutePath();
 				}
-				
-				outputFilenames[0] = originFile.getAbsolutePath();
 				
 			}else{
 				debugPrintln("- Encountered errors.");
