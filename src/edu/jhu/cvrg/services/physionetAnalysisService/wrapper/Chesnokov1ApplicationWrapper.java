@@ -3,18 +3,13 @@ package edu.jhu.cvrg.services.physionetAnalysisService.wrapper;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.jdom.Document;
@@ -43,7 +38,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	 * 
 	 * @return
 	 */	
-	public synchronized boolean chesnokovV1(String sInputFile, String sPath, String sOutputName){
+	public boolean chesnokovV1(String sInputFile, String sPath, String sOutputName){
 		boolean bRet = true;
 		debugPrintln("chesnokovV1()");
 		debugPrintln("- sInputFile:" + sInputFile);
@@ -54,27 +49,20 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 		// exec can be used to specify the working directory.
 		String[] asEnvVar = new String[0];  
 
-		Set<String> tempFiles = null;
-		
 		try{
 			// execute Chesnokov analysis.
 			String chesnokovOutputFilenameXml = sInputFile.substring(0, sInputFile.lastIndexOf(".") + 1) + "xml";
 
 			ServiceProperties prop = ServiceProperties.getInstance();
 			
-			
-			String chesnokovHome = prop.getProperty(ServiceProperties.CHESNOKOV_HOME);
-			
-			tempFiles = this.copyFilesToChesnokovFolder(sPath, chesnokovHome);
-			
-			String wineCommand = prop.getProperty(ServiceProperties.WINE_COMMAND);
+			String wineCommand = prop.getProperty(ServiceProperties.WINE_COMMAND);	
 			
 			String chesnokovComand = prop.getProperty(ServiceProperties.CHESNOKOV_COMMAND);
 			String chesnokovFilters = prop.getProperty(ServiceProperties.CHESNOKOV_FILTERS);
 			
 			String sCommand = wineCommand + " " + chesnokovComand + " " + chesnokovFilters + " " + sInputFile + " " + chesnokovOutputFilenameXml; // add parameters for "input file" and "output file"
 
-			bRet = executeCommand(sCommand, asEnvVar, chesnokovHome);
+			bRet = executeCommand(sCommand, asEnvVar, sPath);
 			
 			stdReturnHandler();
 			debugPrintln("-");
@@ -87,12 +75,12 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 				try {
 					debugPrintln("calling chesnokovToCSV(chesnokovOutputFilename)");
 					
-					chesnokovCSVFilepath = chesnokovToCSV(chesnokovHome + File.separator + chesnokovOutputFilenameXml, chesnokovHome + File.separator + sInputFile, sOutputName, sPath);
+					chesnokovCSVFilepath = chesnokovToCSV(sPath + File.separator + chesnokovOutputFilenameXml, sPath + File.separator + sInputFile, sOutputName, sPath);
 					debugPrintln("----------------------------");
 					File csvFile = new File(chesnokovCSVFilepath);
 					bRet = csvFile.exists();
 					if(bRet){
-						ServiceUtils.deleteFile(chesnokovHome, chesnokovOutputFilenameXml);
+						ServiceUtils.deleteFile(sPath, chesnokovOutputFilenameXml);
 					}
 					
 				}catch(Exception e) {
@@ -110,59 +98,12 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 			bRet = false;
 			e.printStackTrace();
 		}finally{
-			deleteTempFiles(tempFiles);
+			ServiceUtils.deleteFile(sPath, "annotations.txt");
 		}
-
 
 		return bRet;
 	}
 		
-	private void deleteTempFiles(Set<String> tempFiles) {
-		if(tempFiles != null){
-			for (String fileName : tempFiles) {
-				ServiceUtils.deleteFile(fileName);
-			}
-		}
-	}
-
-
-	private Set<String> copyFilesToChesnokovFolder(String sPath, String chesnokovHome) {
-		
-		Set<String> tmpFileNames = new HashSet<String>();
-		File originPath = new File(sPath);
-		
-		for(File file : originPath.listFiles()){
-			
-			File outputFile = new File(chesnokovHome + File.separator + file.getName());
-			try {
-				
-				InputStream fileToSave = new FileInputStream(file);
-				
-				OutputStream fOutStream = new FileOutputStream(outputFile);
-
-				int read = 0;
-				byte[] bytes = new byte[1024];
-
-				while ((read = fileToSave.read(bytes)) != -1) {
-					fOutStream.write(bytes, 0, read);
-				}
-
-				fileToSave.close();
-				fOutStream.flush();
-				fOutStream.close();
-				
-				tmpFileNames.add(outputFile.getAbsolutePath());
-			} catch (IOException e) {
-				log.error("Error on sendToLiferay: "+e.getMessage());
-			}finally{
-				log.info("File created? " + outputFile.exists());
-			}
-		}
-		
-		return tmpFileNames;
-	}
-
-
 	/** Converts the Chesnokov output file (XML) into a CSV format.
 	 * 
 	 * @param fileName - Chesnokov output file (XML) 
