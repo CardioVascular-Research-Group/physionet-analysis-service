@@ -25,6 +25,10 @@ public class AlgorithmDetailLookup {
 		AlgorithmDetailLookup_chesnokovV1 chesnokov = new AlgorithmDetailLookup_chesnokovV1();
 		AlgorithmDetailLookup_sqrs2csv sqrs2csv = new AlgorithmDetailLookup_sqrs2csv();
 		AlgorithmDetailLookup_wqrs2csv wqrs2csv = new AlgorithmDetailLookup_wqrs2csv();
+		AlgorithmDetailLookup_sqrs4ihr sqrs4ihr = new AlgorithmDetailLookup_sqrs4ihr();
+		AlgorithmDetailLookup_wqrs4ihr wqrs4ihr = new AlgorithmDetailLookup_wqrs4ihr();
+		AlgorithmDetailLookup_sqrs4pnnlist sqrs4pnnlist = new AlgorithmDetailLookup_sqrs4pnnlist();
+		AlgorithmDetailLookup_wqrs4pnnlist wqrs4pnnlist = new AlgorithmDetailLookup_wqrs4pnnlist();
 		
 		ann2rr.verbose = verbose;
 		chesnokov.verbose = verbose;
@@ -38,9 +42,13 @@ public class AlgorithmDetailLookup {
 		tach.verbose = verbose;
 		sqrs2csv.verbose = verbose;
 		wqrs2csv.verbose = verbose;
+		sqrs4ihr.verbose = verbose;
+		wqrs4ihr.verbose = verbose;
+		sqrs4pnnlist.verbose = verbose;
+		wqrs4pnnlist.verbose = verbose;
 	
 //		manually alphabetized for now, it will automated later
-		serviceList = new AlgorithmServiceData[12];
+		serviceList = new AlgorithmServiceData[16];
  
 		serviceList[0] = ann2rr.getDetails_ann2rr();
 		serviceList[1] = chesnokov.getDetails_chesnokovV1();
@@ -50,10 +58,14 @@ public class AlgorithmDetailLookup {
 		serviceList[5] = sigamp.getDetails_sigamp();
 		serviceList[6] = sqrs.getDetails_sqrs();
 		serviceList[7] = sqrs2csv.getDetails_sqrs2csv();
-		serviceList[8] = tach.getDetails_tach();
-		serviceList[9] = wqrs.getDetails_wqrs();
-		serviceList[10] = wqrs2csv.getDetails_wqrs2csv();
-		serviceList[11] = wrsamp.getDetails_wrsamp();
+		serviceList[8] = sqrs4ihr.getDetails_sqrs4ihr();
+		serviceList[9] = sqrs4pnnlist.getDetails_sqrs4pnnlist();
+		serviceList[10] = tach.getDetails_tach();
+		serviceList[11] = wqrs.getDetails_wqrs();
+		serviceList[12] = wqrs2csv.getDetails_wqrs2csv();
+		serviceList[13] = wqrs4ihr.getDetails_wqrs4ihr();
+		serviceList[14] = wqrs4pnnlist.getDetails_wqrs4pnnlist();
+		serviceList[15] = wrsamp.getDetails_wrsamp();
 	
 
 		debugPrintln("AlgorithmDetailLookup.loadDetails() finished.");

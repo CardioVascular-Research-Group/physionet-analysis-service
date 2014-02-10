@@ -203,7 +203,7 @@ public class WFDBApplicationWrapper  extends ApplicationWrapper{
 				}
 				
 			}else{
-				debugPrintln("- Encountered errors.");
+				log.error(" - Encountered errors.");
 			}
 			
 		} catch (IOException e) {
@@ -1078,8 +1078,6 @@ public class WFDBApplicationWrapper  extends ApplicationWrapper{
 		
 		//sOutputFile = sRecord;
 		
-		getDirs();
-		
 //		String sCommand = "pnnlist";
 //		if(iInc > 0) sCommand += " -i " + iInc;
 //		if(bPercents) sCommand += " -p";	
@@ -1095,12 +1093,11 @@ public class WFDBApplicationWrapper  extends ApplicationWrapper{
 		
 		bRet &= stdErrorHandler();
 		
-		stdReturnHandler(sPath + sOutputName + ".pnn");
-		
 		if(bRet){
+			stdCSVReturnHandler(sPath + sOutputName + ".csv", new String[]{"NN Interval", "%"});
 			outputFilenames = new String[1];
 			debugPrintln("- sOutputName:" + sOutputName);
-			outputFilenames[0] = sPath + sOutputName + ".pnn";
+			outputFilenames[0] = sPath + sOutputName + ".csv";
 		}else{
 			debugPrintln("- Encountered errors.");
 		}			
@@ -1113,17 +1110,6 @@ public class WFDBApplicationWrapper  extends ApplicationWrapper{
 		return bRet;
 	}
 	
-	private void getDirs() {
-        File dir1 = new File(".");
-        File dir2 = new File("..");
-        try {
-            debugPrintln("Current dir : " + dir1.getCanonicalPath());
-            debugPrintln("Parent  dir : " + dir2.getCanonicalPath());
-        } catch (Exception e) {
-        	log.error(e.getMessage());
-        }
-    }
-
 	@Override
 	protected void processReturnLine(String arg0) {
 		// TODO Auto-generated method stub
@@ -1223,4 +1209,87 @@ public class WFDBApplicationWrapper  extends ApplicationWrapper{
 		return bRet;
 	}
 
+	
+	public boolean ihr(String inputName, String path, String annotator, Integer tolerance, String startTime, boolean printSummary, boolean includeIntervals, String endTime, String showTotalNumberBy, boolean excludeIntervals, String type, String outputName) {
+
+		boolean bRet = true;
+		debugPrintln("ihr()");
+		debugPrintln("- inputName:" + inputName);
+		debugPrintln("- path:" + path);
+		debugPrintln("- annotator:" + annotator);
+		debugPrintln("- tolerance:" + tolerance);
+		debugPrintln("- startTime:" + startTime);
+		debugPrintln("- printSummary:" + printSummary);
+		debugPrintln("- includeIntervals:" + includeIntervals);
+		debugPrintln("- endTime:" + endTime);
+		debugPrintln("- showTotalNumberBy:" + showTotalNumberBy);
+		debugPrintln("- excludeIntervals:" + excludeIntervals);
+		debugPrintln("- type:" + type);
+		debugPrintln("- outputName:" + outputName);
+		
+		try {
+		
+		String[] envVar = new String[0];  
+		
+		// build command string
+		int iIndexPeriod = inputName.lastIndexOf(".");
+		String sRecord = inputName.substring(0, iIndexPeriod);
+		
+		String command = "ihr -r " + path + sRecord ; // record name
+		
+		command += " -a " + annotator;
+		
+		if (tolerance != null && !tolerance.equals("")) {
+			command += " -d " + tolerance; //Reject beat-to-beat heart rate changes exceeding tolerance (in beats per minute; default: 10). Any intervals for which the calculated heart rate would differ by more than the specified tolerance are simply excluded from the output series. To disable this behavior, use a large value for tolerance (e.g., 10000). 
+		} 
+		
+		if(startTime != null && !startTime.equals("")){ 
+			command += " -f " + startTime; //Begin at the specified time in record (default: the beginning of record).
+		}
+		
+		if(endTime != null && !endTime.equals("")){ 
+			command += " -t " + endTime; //Process until the specified time in record (default: the end of the record).
+		}
+		
+		if(printSummary){
+			command += " -h"; //Print a usage summary. 
+		}
+		
+		if(includeIntervals){
+			command += " -i"; //Include all intervals bounded by QRS annotations (default: include intervals bounded by consecutive supraventricular beats only). 
+		}
+		
+		if(excludeIntervals){
+			command += " -x"; //Exclude the interval immediately following each rejected interval. (Rejected intervals are those bounded by excluded beats on at least one end, and those that do not satisfy the tolerance criterion). By default, intervals following rejected intervals are included (unless they are rejected by the tolerance criterion), and a third column is used to flag these intervals (a zero in the third column means the interval is normal, a one means it follows an excluded interval). 
+		}
+		
+		if(showTotalNumberBy != null && !showTotalNumberBy.equals("")){
+			command += " -"+showTotalNumberBy; //Print the elapsed times from the beginning of the record to the annotations that begin each interval, as sample number (using -v), or in seconds (using -vs), minutes (using -vm), or hours (using -vh) before each heart rate value. The options -V, -Vs, -Vm, and -Vh work in the same way, but the printed times are those for the annotations that end the intervals. Only one of these options can be used at a time; if none is chosen, -vs mode is used by default. 
+		}
+		
+		if(type != null && !type.equals("")){
+			command += " -p " + type; //Include intervals bounded by annotations of the specified types only. The type arguments should be annotation mnemonics (e.g., N) as normally printed by rdann(1) in the third column. More than one -p option may be used in a single command, and each -p option may have more than one type argument following it. If type begins with ‘‘-’’, however, it must immediately follow -p (standard annotation mnemonics do not begin with ‘‘-’’, but modification labels in an annotation file may define such mnemonics).
+		}
+		
+		bRet = executeCommand(command, envVar, WORKING_DIR);
+		
+		bRet &= stdErrorHandler();
+		
+		if(bRet){
+			stdCSVReturnHandler(path + outputName + ".csv", new String[]{"Elapsed time (in seconds)", "Instantaneous heart rate (in beats per minute)", "Interval type"});
+			//set first output file.
+			outputFilenames = new String[1];
+			debugPrintln("- sOutputName:" + outputName);
+			outputFilenames[0] = path + outputName + ".csv";
+		}else{
+			debugPrintln("- Encountered errors.");
+		}			
+		
+		} catch (Exception e) {
+			bRet = false;
+			log.error(e.getMessage());
+		}
+		
+		return bRet;
+	}
 }

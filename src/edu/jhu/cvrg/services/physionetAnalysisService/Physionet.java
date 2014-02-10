@@ -227,8 +227,27 @@ public class Physionet {
 		
 		return callWrapper(param0, PhysionetMethods.WQRS2CSV);	
 	}
-
 	
+	public org.apache.axiom.om.OMElement sqrs4pnnlistWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
+		
+		return callWrapper(param0, PhysionetMethods.SQRS4PNNLIST);	
+	}
+	
+	public org.apache.axiom.om.OMElement wqrs4pnnlistWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
+		
+		return callWrapper(param0, PhysionetMethods.WQRS4PNNLIST);	
+	}
+	
+	public org.apache.axiom.om.OMElement sqrs4ihrWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
+		
+		return callWrapper(param0, PhysionetMethods.SQRS4IHR);	
+	}
+	
+	public org.apache.axiom.om.OMElement wqrs4ihrWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
+		
+		return callWrapper(param0, PhysionetMethods.WQRS4IHR);	
+	}
+		
 	public org.apache.axiom.om.OMElement performAnalysis(org.apache.axiom.om.OMElement e) throws Exception {
 		AnalysisUtils util = new AnalysisUtils();
 		
@@ -261,23 +280,8 @@ public class Physionet {
 		PhysionetExecute execute = new PhysionetExecute(analysis);
 		
 		//************* Calls the wrapper of the analysis algorithm. *********************
-		
-		switch (method) {
-			case ANN2RR: 	analysis.setOutputFileNames(execute.executeV2_ann2rr());    break;
-			case CHESNOKOV:	analysis.setOutputFileNames(execute.executeV2_chesnokov()); break;
-			case NGUESS:	analysis.setOutputFileNames(execute.executeV2_nguess()); 	break;
-			case PNNLIST:	analysis.setOutputFileNames(execute.executeV2_pnnlist());   break;
-			case RDSAMP:	analysis.setOutputFileNames(execute.executeV2_rdsamp());    break;
-			case SIGAAMP:	analysis.setOutputFileNames(execute.executeV2_sigamp());    break;
-			case SQRS:		analysis.setOutputFileNames(execute.executeV2_sqrs(true));  break;
-			case SQRS2CSV:	analysis.setOutputFileNames(execute.executeV2_sqrs2csv());  break;
-			case TACH:		analysis.setOutputFileNames(execute.executeV2_tach());      break;
-			case WQRS:		analysis.setOutputFileNames(execute.executeV2_wqrs(true));  break;
-			case WQRS2CSV:	analysis.setOutputFileNames(execute.executeV2_wqrs2csv());  break;
-			case WRSAMP:	analysis.setOutputFileNames(execute.executeV2_wrsamp());    break;
-			default:		break;
-		}
-		//************* Return value is an array of result files.    *********************
+		execute.execute();
+		//************* Return value will be stored on AnalysisVO.    *********************
 		
 		return util.buildOmeReturnType2(analysis);
 	}

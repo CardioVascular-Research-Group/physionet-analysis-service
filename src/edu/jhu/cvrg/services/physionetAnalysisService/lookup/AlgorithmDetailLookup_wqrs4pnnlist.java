@@ -5,35 +5,33 @@ import edu.jhu.cvrg.services.physionetAnalysisService.serviceDescriptionData.Fil
 import edu.jhu.cvrg.services.physionetAnalysisService.serviceDescriptionData.Organization;
 import edu.jhu.cvrg.services.physionetAnalysisService.serviceDescriptionData.People;
 
-
-public class AlgorithmDetailLookup_sqrs2csv {
+public class AlgorithmDetailLookup_wqrs4pnnlist {
 	public AlgorithmServiceData details;
 	public boolean verbose = true;
 	
-	public AlgorithmServiceData getDetails_sqrs2csv(){
-		debugPrintln(" getDetails_sqrs2csv() started.");
-		details = new AlgorithmServiceData();		
-		  
+	public AlgorithmServiceData getDetails_wqrs4pnnlist(){
+		debugPrintln("getDetails_wqrs4pnnlist() started.");
+		details = new AlgorithmServiceData();
+
 		//-------------------------------------------------
-		//-----------  sqrs2csv  -----------
+		//-----------  wqrs4pnnlist -----------
 		//-------------------------------------------------
-		debugPrintln(" - Loading sqrs2csv details.");
+		//details.iWebServiceID = 0;
+		debugPrintln(" - Loading wqrs4pnnlist Type2 details.");
 		details.sAnalysisServiceURL = "http://localhost:8080/axis2/services";
 		details.sServiceName = "physionetAnalysisService";
-		details.sServiceMethod = "sqrs2csvWrapperType2";
-		details.sDisplayShortName = "sqrs2csv";
+		details.sServiceMethod = "wqrs4pnnlistWrapperType2";
+		details.sDisplayShortName = "wqrs4pnnlist/pNNx";
 		
-		details.sToolTipDescription = "Attempts to locate QRS complexes in an ECG signal in the specified record. The detector algorithm is based on the length transform. Reads the annotation file specified by record and annotator and writes a comma-separated-value format translation of it, one annotation per line.";
-									   
-		details.sURLreference = "http://physionet.org/physiotools/wag/sqrs-1.htm^http://physionet.org/physiotools/wag/rdann-1.htm";
-		
-		details.sLongDescription = "Attempts to locate QRS complexes in an ECG signal in the specified record. The detector algorithm is based on the length transform. Reads the annotation file specified by record and annotator and writes a comma-separated-value format translation of it, one annotation per line.";
-		
+		details.sToolTipDescription = "Calculates time domain measures of heart rate variability from a Single-channel QRS detector.";
+		details.sURLreference = "http://physionet.org/physiotools/wag/pnnlis-1.htm";
+		details.sLongDescription = "Calculates time domain measures of heart rate variability from a Single-channel QRS detector (from the reciprocals of the interbeat intervals). These programs derive pNNx, time domain measures of heart rate variability defined for any time interval x as the fraction of consecutive normal sinus (NN) intervals that differ by more than x." 
+				+ "Conventionally, such measures have been applied to assess parasympathetic activity using x = 50 milliseconds (yielding the widely-cited pNN50 statistic). ";
 		details.sVersionIdWebService = "2.0";
-		details.sDateWebService = "February 03, 2014";
+		details.sDateWebService = "February 10, 2014";
 		details.sLicence = "http://physionet.org/physiotools/wag/wag.htm";
 
-		debugPrintln(" - - Loading sqrs2csv afInFileTypes."); 
+		debugPrintln(" - - Loading wqrs4pnnlist afInFileType"); 
 		details.afInFileTypes = new FileTypes[3];
 		  for(int f=0; f<3;f++){
 			  details.afInFileTypes[f] = new FileTypes();
@@ -49,8 +47,9 @@ public class AlgorithmDetailLookup_sqrs2csv {
 		  details.afInFileTypes[2].sName="WFDBxyz";
 		  details.afInFileTypes[2].sExtension = "xyz";
 		  details.afInFileTypes[2].sDisplayShortName = "WFDB VCG xyz data";
-		
-		debugPrintln(" - - Loading sqrs2csv afOutFileTypes"); 
+		//-------------
+		  
+		debugPrintln(" - - Loading wqrs4pnnlist afOutFileTypes"); 
 		details.afOutFileTypes = new FileTypes[1];
 		  for(int f=0; f<1;f++){
 			  details.afOutFileTypes[f] = new FileTypes();
@@ -59,10 +58,11 @@ public class AlgorithmDetailLookup_sqrs2csv {
 		  details.afOutFileTypes[0].sExtension = "csv";
 		  details.afOutFileTypes[0].sDisplayShortName = "Comma Separated Value";
 		//-------------
-		  
-		debugPrintln(" - - Loading sqrs2csv apAlgorithmProgrammers."); 
-		details.apAlgorithmProgrammers = new People[1];
-		  for(int p=0; p<1;p++){
+			  
+
+		debugPrintln(" - - Loading wqrs4pnnlist apAlgorithmProgrammers."); 
+		details.apAlgorithmProgrammers = new People[3];
+		  for(int p=0; p<3;p++){
 			  details.apAlgorithmProgrammers[p] = new People();
 		  }
 		  details.apAlgorithmProgrammers[0].sEmail="george@mit.edu";
@@ -70,10 +70,17 @@ public class AlgorithmDetailLookup_sqrs2csv {
 		  details.apAlgorithmProgrammers[0].sMiddleName="B.";
 		  details.apAlgorithmProgrammers[0].sLastName="Moody";  
 		  details.apAlgorithmProgrammers[0].sOrganization="Physionet";
+		//-------------------  
+		  details.apAlgorithmProgrammers[1].sFirstName="WAH";
+		  details.apAlgorithmProgrammers[1].sLastName="Engelse";  
+		//-------------------  
+		  details.apAlgorithmProgrammers[2].sFirstName="Cees";
+		  details.apAlgorithmProgrammers[2].sLastName="Zeelenberg";  
+		//-------------------  
 		  
-		debugPrintln(" - - Loading sqrs2csv apWebServiceProgrammers."); 
+		debugPrintln(" - - Loading wqrs4pnnlist apWebServiceProgrammers."); 
 		details.apWebServiceProgrammers = new People[1];
-		  for(int p=0; p<details.apWebServiceProgrammers.length;p++){
+		  for(int p=0; p<1;p++){
 			  details.apWebServiceProgrammers[p] = new People();
 		  }
 		  details.apWebServiceProgrammers[0].sEmail="avilard4@jhu.edu";
@@ -81,9 +88,9 @@ public class AlgorithmDetailLookup_sqrs2csv {
 		  details.apWebServiceProgrammers[0].sMiddleName="L.";
 		  details.apWebServiceProgrammers[0].sLastName="Vilardo";  
 		  details.apWebServiceProgrammers[0].sOrganization="Johns Hopkins University";
-		//=====================  
+		//-------------------  
 			  
-		debugPrintln(" - - Loading sqrs2csv aoAffiliatedOrgs."); 
+		debugPrintln(" - - Loading wqrs4pnnlist aoAffiliatedOrgs."); 
 		details.aoAffiliatedOrgs = new Organization[3];
 		  for(int p=0; p<3;p++){
 			  details.aoAffiliatedOrgs[p] = new Organization();
@@ -103,7 +110,7 @@ public class AlgorithmDetailLookup_sqrs2csv {
 	}
 	
 	private void debugPrintln(String text){
-		if(verbose)	System.out.println("# AlgorithmDetailLookup_sqrs2csv # " + text);
+		if(verbose)	System.out.println("# AlgorithmDetailLookup_wqrs4pnnlist # " + text);
 	}
 
 }

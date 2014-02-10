@@ -28,34 +28,43 @@ public class PhysionetExecute extends Thread{
 	@Override
 	public void run() {
 		
+		this.execute();
+		
+	}
+	
+	public void execute(){
+	
 		String[] asOutputFileHandles = null;
 		//perform the analyze
 		switch (analysis.getAlgorithm()) {
-			case ANN2RR: 	asOutputFileHandles = this.executeV2_ann2rr();    break;
-			case CHESNOKOV:	asOutputFileHandles = this.executeV2_chesnokov(); break;
-			case NGUESS:	asOutputFileHandles = this.executeV2_nguess();	  break;
-			case PNNLIST:	asOutputFileHandles = this.executeV2_pnnlist();   break;
-			case RDSAMP:	asOutputFileHandles = this.executeV2_rdsamp();    break;
-			case SIGAAMP:	asOutputFileHandles = this.executeV2_sigamp();    break;
-			case SQRS:		asOutputFileHandles = this.executeV2_sqrs(true);  break;
-			case TACH:		asOutputFileHandles = this.executeV2_tach();      break;
-			case WQRS:		asOutputFileHandles = this.executeV2_wqrs(true);  break;
-			case WRSAMP:	asOutputFileHandles = this.executeV2_wrsamp();    break;
-			default:		break;
+			case ANN2RR: 		asOutputFileHandles = this.executeV2_ann2rr();    	break;
+			case CHESNOKOV:		asOutputFileHandles = this.executeV2_chesnokov(); 	break;
+			case NGUESS:		asOutputFileHandles = this.executeV2_nguess();	  	break;
+			case PNNLIST:		asOutputFileHandles = this.executeV2_pnnlist();   	break;
+			case RDSAMP:		asOutputFileHandles = this.executeV2_rdsamp();    	break;
+			case SIGAAMP:		asOutputFileHandles = this.executeV2_sigamp();    	break;
+			case SQRS:			asOutputFileHandles = this.executeV2_sqrs(true);  	break;
+			case SQRS2CSV:		asOutputFileHandles = this.executeV2_sqrs2csv();  	break;
+			case SQRS4IHR: 		asOutputFileHandles = this.executeV2_sqrs4ihr();  	break;
+			case SQRS4PNNLIST: 	asOutputFileHandles = this.executeV2_sqrs4pnnlist();break;
+			case TACH:			asOutputFileHandles = this.executeV2_tach();     	break;
+			case WQRS:			asOutputFileHandles = this.executeV2_wqrs(true);  	break;
+			case WQRS4IHR: 		asOutputFileHandles = this.executeV2_wqrs4ihr();  	break;
+			case WQRS4PNNLIST: 	asOutputFileHandles = this.executeV2_wqrs4pnnlist();break;
+			case WQRS2CSV:		asOutputFileHandles = this.executeV2_wqrs2csv();  	break;
+			case WRSAMP:		asOutputFileHandles = this.executeV2_wrsamp();    	break;
+			default: 			break;
 		}
 		
-		if(errorMessage.length() == 0){
-			//send the result files
-			AnalysisUtils.moveFiles(asOutputFileHandles, analysis.getGroupId(), analysis.getFolderId(), Long.valueOf(analysis.getUserId()));
-		}
+		analysis.setOutputFileNames(asOutputFileHandles);
 		
-		
-		//TODO [VILARDO] register the job status on database 
-		
+		//TODO [VILARDO] register the job status on database
 	}
+	
 
-	public String[] executeV2_ann2rr(){
+	private String[] executeV2_ann2rr(){
 		debugPrintln("executeV2_ann2rr()");
+		errorMessage = "executeV2_ann2rr() failed.";
 		String[] asResult=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -101,21 +110,25 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- status: " + status);
 			if(status==false){			
 				asResult = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				//*** Create a String array for the output.
 				asResult = cWFDB.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_ann2rr() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResult;
 	}
 	
 	
-	public String[] executeV2_rdann(){
+	private String[] executeV2_rdann(){
 		debugPrintln("executeV2_rdann()");
+		errorMessage = "executeV2_rdann() failed.";
 		String[] asResult=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -148,7 +161,7 @@ public class PhysionetExecute extends Thread{
 			//*** Insert the call to the analysis algorithm here:	
 			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
 			
-			debugPrintln("- entering ann2rr()");
+			debugPrintln("- entering rdann()");
 			boolean status = cWFDB.rdann(sInputName, sInputPath, 
 					sAnnotator, channel, elapsedTime, beginTime, 
 					printSummary, num, type, subType, stopTime, 
@@ -158,21 +171,84 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- status: " + status);
 			if(status==false){			
 				asResult = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				//*** Create a String array for the output.
 				asResult = cWFDB.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_ann2rr() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
+		}		
+		return asResult;
+	}	
+	
+	private String[] executeV2_ihr(){
+		debugPrintln("executeV2_ihr()");
+		errorMessage = "executeV2_ihr() failed.";
+		String[] asResult=null;
+		try {
+			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
+			String 	startTime		= (String) analysis.getCommandParamMap().get("f"); // -f
+			//we can use more than one -p on command, but for now we will not support
+			String 	type				= (String) analysis.getCommandParamMap().get("p"); // -p
+			String 	endTime				= (String) analysis.getCommandParamMap().get("t"); // -t
+			
+			Integer tolerance = null;
+			if(analysis.getCommandParamMap().get("d") != null){
+				tolerance	= Integer.valueOf((String) analysis.getCommandParamMap().get("d")); // -c
+			}
+			
+			//TODO Implement the showTotalNumberBy
+			
+			boolean printSummary	= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("h")); // -h
+			boolean includeIntervals	= Boolean.parseBoolean((String) analysis.getCommandParamMap().get("i")); // -v
+			boolean excludeIntervals = Boolean.parseBoolean((String) analysis.getCommandParamMap().get("x")); // -x
+			
+			String annotationFileName = AnalysisUtils.findPathNameExt(analysis.getFileNames(), ".atr.qrs.wqrs");
+			String sAnnotator = annotationFileName.substring(annotationFileName.lastIndexOf('.')+1);
+			
+			//**********************************************************************
+			String sInputPath = ServiceUtils.extractPath(analysis.getFileNames().get(0));
+			String sInputName = ServiceUtils.extractName(analysis.getFileNames().get(0));
+			
+			debugPrintln("- sInputPath: " + sInputPath);
+			debugPrintln("- sInputName: " + sInputName);
+			//*** Insert the call to the analysis algorithm here:	
+			WFDBApplicationWrapper cWFDB =  new WFDBApplicationWrapper();
+			
+			String outputName = sInputName.substring(0, sInputName.lastIndexOf(".")) + '_' + analysis.getJobIdNumber();
+			
+			debugPrintln("- entering ihr()");
+			boolean status = cWFDB.ihr(sInputName, sInputPath, 
+					sAnnotator, tolerance, startTime, printSummary, includeIntervals, endTime, null, excludeIntervals, type, outputName);
+
+			//*** If the analysis fails, this method should return a null.
+			debugPrintln("- status: " + status);
+			if(status==false){			
+				asResult = null;
+				analysis.setErrorMessage(errorMessage);
+			}else{
+				//*** Reformat(if necessary) the return values as one or more output files.
+				//*** Create a String array for the output.
+				asResult = cWFDB.getOutputFilenames();
+			}
+			analysis.setSucess(status);
+		} catch (Exception e) {
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResult;
 	}	
 
 	
-	public String[] executeV2_nguess(){
+	private String[] executeV2_nguess(){
 		debugPrintln("executeV2_nguess()");
+		errorMessage = "executeV2_nguess() failed.";
 		String[] asResult=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -219,26 +295,30 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- status: " + status);
 			if(status==false){			
 				asResult = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				//*** Create a String array for the output.
 				asResult = cWFDB.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_nguess() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResult;
 	}	
 
 	
-	public String[] executeV2_pnnlist(){
+	private String[] executeV2_pnnlist(){
 		debugPrintln("executeV2_pnnlist()");
+		errorMessage = "executeV2_pnnlist() failed.";
 		String[] asResult=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
 
-			String annotationFileName = AnalysisUtils.findPathNameExt(analysis.getFileNames(), ".atr.qrs");
+			String annotationFileName = AnalysisUtils.findPathNameExt(analysis.getFileNames(), ".atr.qrs.wqrs");
 			String sAnnotator = annotationFileName.substring(annotationFileName.lastIndexOf('.')+1);
 			
 			int iStartTime = 0;
@@ -279,14 +359,17 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- status: " + status);
 			if(status==false){			
 				asResult = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				//*** Create a String array for the output.
 				asResult = cWFDB.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_pnnlist() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResult;
 	}	
@@ -299,8 +382,9 @@ public class PhysionetExecute extends Thread{
 	 * @param inputFileNames - array of (absolute) input file path/name strings.
 	 * @return  - array of (absolute) output file path/name strings or null if the analysis fails.
 	 */
-	public String[] executeV2_sigamp(){
+	private String[] executeV2_sigamp(){
 		debugPrintln("executeV2_sigamp()");
+		errorMessage = "executeV2_sigamp() failed.";
 		String[] asResult=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -363,14 +447,17 @@ public class PhysionetExecute extends Thread{
 			//*** If the analysis fails, this method should return a null.
 			if(status==false){
 				asResult = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				//*** Create a String array for the output.
 				asResult = cWFDB.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_sigamp() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResult;
 	}
@@ -382,8 +469,9 @@ public class PhysionetExecute extends Thread{
 	 * @param inputFileNames - array of (absolute) input file path/name strings.
 	 * @return  - array of (absolute) output file path/name strings or null if the analysis fails.
 	 */
-	public String[] executeV2_sqrs(boolean rename){
+	private String[] executeV2_sqrs(boolean rename){
 		debugPrintln("executeV2_sqrs()");
+		errorMessage = "executeV2_sqrs() failed.";
 		String[] asResultHandles=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -434,14 +522,17 @@ public class PhysionetExecute extends Thread{
 			//*** If the analysis fails, this method should return a null.
 			if(!status){
 				asResultHandles = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				//*** Create a String array for the output.
 				asResultHandles = cWFDB.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_sqrs() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResultHandles;
 	}
@@ -457,6 +548,7 @@ public class PhysionetExecute extends Thread{
 	 */
 	public String[] executeV2_wqrs(boolean rename){
 		debugPrintln("executeV2_wqrs()");
+		errorMessage = "executeV2_wqrs() failed.";
 		String[] asResultHandles=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -507,23 +599,27 @@ public class PhysionetExecute extends Thread{
 			boolean status = cWFDB.wqrs(sHeaderName, sHeaderPath, bDumpRaw, iBegin, bPrintHelp, bHighrez, bFindJPoints, iThreshold, iPowerFreq, bResample, sSignal, iTime, bVerbose, rename);
 			debugPrintln("- wqrs() returned: " + status);
 			//*** If the analysis fails, this method should return a null.
-			if(status==false){
+			if(!status){
 				asResultHandles = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				//*** Create a String array for the output.
 				asResultHandles = cWFDB.getOutputFilenames();			
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_wqrs() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResultHandles;
 	}
 
 
-	public String[] executeV2_rdsamp(){
+	private String[] executeV2_rdsamp(){
 		debugPrintln("executeV2_rdsamp()");
+		errorMessage = "executeV2_rdsamp() failed.";
 		String[] asResult=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -575,21 +671,25 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- status: " + status);
 			if(status==false){			
 				asResult = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				//*** Create a String array for the output.
 				asResult = cWFDB.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_rdsamp() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResult;
 	}
 
 
-	public String[] executeV2_tach(){
+	private String[] executeV2_tach(){
 		debugPrintln("executeV2_tach()");
+		errorMessage = "executeV2_tach() failed.";
 		String[] asResult=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -651,20 +751,24 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- status: " + status);
 			if(status==false){			
 				asResult = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				//*** Create a String array for the output.
 				asResult = cWFDB.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_tach() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResult;
 	}		
 
-	public String[] executeV2_wrsamp(){
+	private String[] executeV2_wrsamp(){
 		debugPrintln("executeV2_wrsamp()");
+		errorMessage = "executeV2_wrsamp() failed.";
 		String[] asResult=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -720,19 +824,23 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- status: " + status);
 			if(status==false){			
 				asResult = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				asResult = cWFDB.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_wrsamp() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResult;
 	}	
 
-	public String[] executeV2_chesnokov(){
+	private String[] executeV2_chesnokov(){
 		debugPrintln("executeV2_chesnokov()");
+		errorMessage = "executeV2_chesnokov() failed.";
 		String[] asResult=null;
 		try {
 			//*** The analysis algorithm should return a String array containing the full path/names of the result files.
@@ -756,46 +864,172 @@ public class PhysionetExecute extends Thread{
 			debugPrintln("- status: " + status);
 			if(status==false){			
 				asResult = null;
+				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.
 				asResult = cChesnokov.getOutputFilenames();
 			}
+			analysis.setSucess(status);
 		} catch (Exception e) {
-			errorMessage = "executeV2_chesnokov() failed.";
-			log.error(errorMessage + " " + e.getMessage());
+			errorMessage = errorMessage + " " + e.getMessage();
+			log.error(errorMessage);
+			analysis.setErrorMessage(errorMessage);
 		}		
 		return asResult;
 	}	
+	
+	private String[] executeV2_sqrs2csv() {
+		String errorMessage = "executeV2_sqrs2csv() failed.";
+		
+		String[] result = executeV2_sqrs(false);
+		
+		if(analysis.isSucess()){
+			
+			String annotationFile = result[0];
+			analysis.getFileNames().add(annotationFile);
+
+			//Change the status and error message;
+			result = executeV2_rdann();
+			
+			if(analysis.isSucess()){
+				ServiceUtils.deleteFile(annotationFile);	
+			}else{
+				analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());	
+			}
+		}else{
+			analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());
+		}
+		
+		return result;
+	}
+	
+	private String[] executeV2_wqrs2csv() {
+		String[] result = executeV2_wqrs(false);
+		
+		if(analysis.isSucess()){
+			
+			String annotationFile = result[0];
+			analysis.getFileNames().add(annotationFile);
+			
+			//Change the status and error message;		
+			result = executeV2_rdann();
+			
+			if(analysis.isSucess()){
+				ServiceUtils.deleteFile(annotationFile);	
+			}else{
+				analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());	
+			}
+		}else{
+			analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());
+		}
+		
+		return result;
+	}
+	
+	
+	private String[] executeV2_sqrs4ihr() {
+		String errorMessage = "executeV2_sqrs4ihr() failed.";
+		
+		String[] result = executeV2_sqrs(false);
+		
+		if(analysis.isSucess()){
+			
+			String annotationFile = result[0];
+			analysis.getFileNames().add(annotationFile);
+
+			//Change the status and error message;
+			result = executeV2_ihr();
+			
+			if(analysis.isSucess()){
+				ServiceUtils.deleteFile(annotationFile);	
+			}else{
+				analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());	
+			}
+		}else{
+			analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());
+		}
+		
+		return result;
+	}
+	
+	
+	private String[] executeV2_wqrs4ihr() {
+		String errorMessage = "executeV2_sqrs4ihr() failed.";
+		
+		String[] result = executeV2_wqrs(false);
+		
+		if(analysis.isSucess()){
+			
+			String annotationFile = result[0];
+			analysis.getFileNames().add(annotationFile);
+
+			//Change the status and error message;
+			result = executeV2_ihr();
+			
+			if(analysis.isSucess()){
+				ServiceUtils.deleteFile(annotationFile);	
+			}else{
+				analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());	
+			}
+		}else{
+			analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());
+		}
+		
+		return result;
+	}
+	
+	private String[] executeV2_sqrs4pnnlist() {
+		String errorMessage = "executeV2_sqrs4pnnlist() failed.";
+		
+		String[] result = executeV2_sqrs(false);
+		
+		if(analysis.isSucess()){
+			
+			String annotationFile = result[0];
+			analysis.getFileNames().add(annotationFile);
+
+			//Change the status and error message;
+			result = executeV2_pnnlist();
+			
+			if(analysis.isSucess()){
+				ServiceUtils.deleteFile(annotationFile);	
+			}else{
+				analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());	
+			}
+		}else{
+			analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());
+		}
+		
+		return result;
+	}
+	
+	private String[] executeV2_wqrs4pnnlist() {
+		String errorMessage = "executeV2_sqrs4pnnlist() failed.";
+		
+		String[] result = executeV2_wqrs(false);
+		
+		if(analysis.isSucess()){
+			
+			String annotationFile = result[0];
+			analysis.getFileNames().add(annotationFile);
+
+			//Change the status and error message;
+			result = executeV2_pnnlist();
+			
+			if(analysis.isSucess()){
+				ServiceUtils.deleteFile(annotationFile);	
+			}else{
+				analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());	
+			}
+		}else{
+			analysis.setErrorMessage(errorMessage +" -> "+analysis.getErrorMessage());
+		}
+		
+		return result;
+	}
 	
 	private void debugPrintln(String text){
 		log.debug("-+ physionetAnalysisService.physionetExecuter + " + text);
 	}
 
-	public String[] executeV2_sqrs2csv() {
-		String[] result = executeV2_sqrs(false);
-		
-		String annotationFile = result[0];
-		
-		analysis.getFileNames().add(annotationFile);
-		
-		result = executeV2_rdann();
-		
-		ServiceUtils.deleteFile(annotationFile);
-		
-		return result;
-	}
-	
-	public String[] executeV2_wqrs2csv() {
-		String[] result = executeV2_wqrs(false);
-		
-		String annotationFile = result[0];
-		
-		analysis.getFileNames().add(annotationFile);
-				
-		result = executeV2_rdann();
-		
-		ServiceUtils.deleteFile(annotationFile);
-		
-		return result;
-	}
 }

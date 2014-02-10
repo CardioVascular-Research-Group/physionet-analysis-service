@@ -175,7 +175,7 @@ public class AnalysisUtils {
 			omeReturn = omFactory.createOMElement(analysis.getAlgorithm().getOmeName(), omNs); 
 	
 			// Converts the array of filenames to a single "^" delimited String for output.
-			if (errorMessage.length() == 0){
+			if (analysis.getErrorMessage() == null || analysis.getErrorMessage().length() == 0){
 				ServiceUtils.addOMEChild("filecount", new Long(analysis.getOutputFileNames().length).toString(),omeReturn,omFactory,omNs);
 				omeReturn.addChild( ServiceUtils.makeOutputOMElement(analysis.getOutputFileNames(), "filenamelist", "filename", omFactory, omNs) );
 				ServiceUtils.addOMEChild("jobID", analysis.getJobId(), omeReturn, omFactory, omNs);
@@ -186,9 +186,15 @@ public class AnalysisUtils {
 				Map<String, OMElement> params = ServiceUtils.extractParams(result);
 				
 				omeReturn.addChild(params.get("fileList"));
-				
-				
 			}else{
+				if(analysis.getFileNames() != null && !analysis.getFileNames().isEmpty()){
+					File tmpJobFolder = new File(ServiceUtils.extractPath(analysis.getFileNames().get(0)));
+					for (File f : tmpJobFolder.listFiles()) {
+						f.delete();
+					}
+					tmpJobFolder.delete();
+				}
+				
 				ServiceUtils.addOMEChild("error","If analysis failed, put your message here: \"" + errorMessage + "\"",omeReturn,omFactory,omNs);
 			}
 		} catch (Exception e) {

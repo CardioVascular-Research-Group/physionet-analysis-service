@@ -18,6 +18,9 @@ public class AnalysisVO {
 	private String[] outputFileNames;
 	public Map<String, Object> commandParamMap;
 	
+	private boolean sucess;
+	private String errorMessage;
+	
 	public AnalysisVO(String jobId, String userId, long groupId, long folderId, String subjectId, PhysionetMethods algorithm, List<String> inputFileNames, Map<String, Object> commandParamMap) {
 		super();
 		this.userId = userId;
@@ -77,5 +80,21 @@ public class AnalysisVO {
 	public String getJobIdNumber(){
 		return this.getJobId().replaceAll("\\D", "");
 	}
+
+	public boolean isSucess() {
+		return sucess;
+	}
+
+	public void setSucess(boolean sucess) {
+		this.sucess = sucess;
+	}
 	
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+
 }
