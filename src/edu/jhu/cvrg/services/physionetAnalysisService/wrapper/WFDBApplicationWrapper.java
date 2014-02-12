@@ -1076,18 +1076,16 @@ public class WFDBApplicationWrapper  extends ApplicationWrapper{
 		int iIndexPeriod = sInputFile.lastIndexOf(".");
 		String sRecord = sInputFile.substring(0, iIndexPeriod);
 		
-		//sOutputFile = sRecord;
+//		String sCommand = " pNNx -r " + sPath + sRecord + " -a " + sAnnotator;
 		
-//		String sCommand = "pnnlist";
-//		if(iInc > 0) sCommand += " -i " + iInc;
-//		if(bPercents) sCommand += " -p";	
-//		if(bSeparateDistributions) sCommand += " -s";
-
-		String sCommand = " pNNx -r " + sPath + sRecord + " -a " + sAnnotator;
+		String sCommand = "ann2rr -r " + sPath + sRecord + " -a " + sAnnotator +" -A -i s8 -w";
+		
 		if(iStartTime > 0) sCommand += " -f " + iStartTime;
 		if(iEndTime > 0) sCommand += " -t " + iEndTime;
-		debugPrintln("- sCommand:" + sCommand);
 		
+		sCommand += " | pnnlist";
+		
+		debugPrintln("- sCommand:" + sCommand);
 		
 		bRet = executeCommand(sCommand, asEnvVar, WORKING_DIR);
 		
