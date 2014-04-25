@@ -41,7 +41,7 @@ public class AnalysisUtils {
 	
 	private String sep = File.separator;
 	
-	public AnalysisVO parseInputParametersType2(OMElement param0, PhysionetMethods algorithm){ 
+	public AnalysisVO parseInputParametersType2(OMElement param0, PhysionetMethods algorithm){
 		AnalysisVO ret = null;
 		
 		try {
