@@ -17,7 +17,8 @@ import org.apache.axiom.om.OMFactory;
 import org.apache.axiom.om.OMNamespace;
 import org.apache.log4j.Logger;
 
-import edu.jhu.cvrg.waveform.model.PhysionetMethods;
+import edu.jhu.cvrg.dbapi.dto.PhysionetMethods;
+//import edu.jhu.cvrg.waveform.model.PhysionetMethods;
 import edu.jhu.cvrg.waveform.service.ServiceProperties;
 import edu.jhu.cvrg.waveform.service.ServiceUtils;
 import edu.jhu.cvrg.waveform.utility.WebServiceUtility;
