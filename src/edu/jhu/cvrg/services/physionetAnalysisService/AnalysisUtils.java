@@ -17,7 +17,9 @@ import org.apache.axiom.om.OMFactory;
 import org.apache.axiom.om.OMNamespace;
 import org.apache.log4j.Logger;
 
-import edu.jhu.cvrg.waveform.model.PhysionetMethods;
+//import edu.jhu.cvrg.dbapi.dto.PhysionetMethods; // This should have worked, but does not.It will be replaced with primary key soon.
+//import edu.jhu.cvrg.waveform.model.PhysionetMethods;
+
 import edu.jhu.cvrg.waveform.service.ServiceProperties;
 import edu.jhu.cvrg.waveform.service.ServiceUtils;
 import edu.jhu.cvrg.waveform.utility.WebServiceUtility;
@@ -40,7 +42,7 @@ public class AnalysisUtils {
 	
 	private String sep = File.separator;
 	
-	public AnalysisVO parseInputParametersType2(OMElement param0, PhysionetMethods algorithm){
+	public AnalysisVO parseInputParametersType2(OMElement param0, PhysionetMethods algorithm){ 
 		AnalysisVO ret = null;
 		
 		try {

@@ -9,9 +9,11 @@ import org.apache.log4j.Logger;
 
 import com.thoughtworks.xstream.XStream;
 
+//import edu.jhu.cvrg.dbapi.dto.PhysionetMethods;
 import edu.jhu.cvrg.services.physionetAnalysisService.lookup.AlgorithmDetailLookup;
 import edu.jhu.cvrg.services.physionetAnalysisService.serviceDescriptionData.AlgorithmServiceData;
-import edu.jhu.cvrg.waveform.model.PhysionetMethods;
+//import edu.jhu.cvrg.waveform.model.PhysionetMethods;
+
 
 /** A collection of methods for building a generic Web Service to wrap around an arbitrary analysis algorithm..
  * 
@@ -275,7 +277,7 @@ public class Physionet {
 		
 		AnalysisUtils util = new AnalysisUtils();
 		
-		AnalysisVO analysis = util.parseInputParametersType2(e, method);
+		AnalysisVO analysis = util.parseInputParametersType2(e, method);          //(e, method);
 		
 		PhysionetExecute execute = new PhysionetExecute(analysis);
 		
