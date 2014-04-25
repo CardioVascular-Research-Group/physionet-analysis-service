@@ -1,5 +1,5 @@
 package edu.jhu.cvrg.services.physionetAnalysisService;
-
+// this should be replaced with the primary key from the algorithm table.
 public enum PhysionetMethods{
 	
 	ANN2RR("ann2rr", "ann2rrWrapperType2"),
