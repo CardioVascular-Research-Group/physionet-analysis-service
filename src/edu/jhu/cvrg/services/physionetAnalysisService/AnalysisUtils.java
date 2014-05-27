@@ -43,7 +43,7 @@ public class AnalysisUtils {
 	
 	public AnalysisVO parseInputParametersType2(OMElement param0, PhysionetMethods algorithm){
 		AnalysisVO ret = null;
-		
+		debugPrintln("parseInputParametersType2()");
 		try {
 			Map<String, OMElement> params = ServiceUtils.extractParams(param0);
 			
@@ -53,6 +53,7 @@ public class AnalysisUtils {
 			groupID      		= Long.parseLong(params.get("groupID").getText()) ;
 			String subjectID    = params.get("subjectID").getText() ;
 			OMElement parameterlist = (OMElement) params.get("parameterlist");
+			debugPrintln("****  parameterlist ****: " + parameterlist);
 			
 			String inputPath = ServiceUtils.SERVER_TEMP_ANALYSIS_FOLDER + sep + jobID;
 			StringTokenizer strToken = new StringTokenizer(params.get("fileNames").getText(), "^");
@@ -326,7 +327,8 @@ public class AnalysisUtils {
 
 	
 	private static void debugPrintln(String text){
-		log.debug("++ analysisUtils + " + text);
+		System.out.println("++ analysisUtils + " + text);
+		log.info("++ analysisUtils + " + text);
 	}
 
 }

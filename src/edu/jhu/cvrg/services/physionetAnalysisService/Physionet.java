@@ -289,6 +289,6 @@ public class Physionet {
 	}
 
 	private void debugPrintln(String text){
-		log.debug("+ physionetAnalysisService + " + text);
+		log.info("+ physionetAnalysisService + " + text);
 	}
 }
