@@ -848,20 +848,20 @@ public class PhysionetExecute extends Thread{
 			String sDatPath = ServiceUtils.extractPath(sDatPathName);
 			String sDatName = ServiceUtils.extractName(sDatPathName);
 			
-			debugPrintln("- sDatPathName: " + sDatPathName);
-			debugPrintln("- sDatPath: " + sDatPath);
-			debugPrintln("- sDatName: " + sDatName);
+			log.info("physionetAnalysisService.PhysionetExecute - sDatName: " + sDatName);
+			log.info("physionetAnalysisService.PhysionetExecute - sDatPath: " + sDatPath);
+			log.info("physionetAnalysisService.PhysionetExecute - sDatPathName: " + sDatPathName);
 
 			//*** Insert the call to the analysis algorithm here:	
 			Chesnokov1ApplicationWrapper cChesnokov =  new Chesnokov1ApplicationWrapper();
 			int iIndexPeriod = sDatName.lastIndexOf(".");
 			String sOutputFile = sDatName.substring(0, iIndexPeriod) + '_' + analysis.getJobIdNumber();  // This will become the name of the CSV file
 
-			debugPrintln("- entering chesnokovV1()");
+			log.info("physionetAnalysisService.PhysionetExecute - entering chesnokovV1(sDatName, sDatPath, sOutputFile)");
 			boolean status = cChesnokov.chesnokovV1(sDatName, sDatPath, sOutputFile);
 
 			//*** If the analysis fails, this method should return a null.
-			debugPrintln("- status: " + status);
+			log.info("physionetAnalysisService.PhysionetExecute - status: " + status);
 			if(status==false){			
 				asResult = null;
 				analysis.setErrorMessage(errorMessage);

@@ -40,10 +40,10 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	 */	
 	public boolean chesnokovV1(String sInputFile, String sPath, String sOutputName){
 		boolean bRet = true;
-		debugPrintln("chesnokovV1()");
-		debugPrintln("- sInputFile:" + sInputFile);
-		debugPrintln("- sPath:" + sPath);
-		debugPrintln("- sOutputName:" + sOutputName);
+		System.out.println("chesnokovV1()");
+		System.out.println("- sInputFile:" + sInputFile);
+		System.out.println("- sPath:" + sPath);
+		System.out.println("- sOutputName:" + sOutputName);
 		// no environment variables are needed, 
 		// this is a place keeper so that the three parameter version of
 		// exec can be used to specify the working directory.
@@ -54,7 +54,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 			String chesnokovOutputFilenameXml = sInputFile.substring(0, sInputFile.lastIndexOf(".") + 1) + "xml";
 
 			ServiceProperties prop = ServiceProperties.getInstance();
-			
+
 			String wineCommand = prop.getProperty(ServiceProperties.WINE_COMMAND);	
 			
 			String chesnokovComand = prop.getProperty(ServiceProperties.CHESNOKOV_COMMAND);
@@ -64,11 +64,11 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 
 			bRet = executeCommand(sCommand, asEnvVar, sPath);
 			
-			stdReturnHandler();
-			debugPrintln("-");
+			String stdReturn = stdReturnHandler();
+			debugPrintln(stdReturn);
 			
-			stdErrorHandler();
-			debugPrintln("-");
+			boolean stdError = stdErrorHandler();
+			debugPrintln("stdError returned: " + stdError);
 
 			String chesnokovCSVFilepath="";
 			if(bRet){			

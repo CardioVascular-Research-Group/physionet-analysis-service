@@ -43,7 +43,7 @@ public class AnalysisUtils {
 	
 	public AnalysisVO parseInputParametersType2(OMElement param0, PhysionetMethods algorithm){
 		AnalysisVO ret = null;
-		debugPrintln("parseInputParametersType2()");
+		log.info("++ analysisUtils +parseInputParametersType2()");
 		try {
 			Map<String, OMElement> params = ServiceUtils.extractParams(param0);
 			
@@ -53,7 +53,7 @@ public class AnalysisUtils {
 			groupID      		= Long.parseLong(params.get("groupID").getText()) ;
 			String subjectID    = params.get("subjectID").getText() ;
 			OMElement parameterlist = (OMElement) params.get("parameterlist");
-			debugPrintln("****  parameterlist ****: " + parameterlist);
+			log.info("++ analysisUtils +****  parameterlist ****: " + parameterlist);
 			
 			String inputPath = ServiceUtils.SERVER_TEMP_ANALYSIS_FOLDER + sep + jobID;
 			StringTokenizer strToken = new StringTokenizer(params.get("fileNames").getText(), "^");
@@ -67,10 +67,10 @@ public class AnalysisUtils {
 			inputFileNames = fileNames;
 
 			if(parameterlist != null){
-				debugPrintln("Building Command Parameter map...;");
+				log.info("++ analysisUtils +Building Command Parameter map...;");
 				mapCommandParam = buildParamMap(parameterlist);
 			}else{
-				debugPrintln("There are no parameters, so Command Parameter map was not built.");
+				log.info("++ analysisUtils +There are no parameters, so Command Parameter map was not built.");
 				mapCommandParam = new HashMap<String, Object>(); 
 			}
 			
@@ -128,7 +128,7 @@ public class AnalysisUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> buildParamMap(OMElement param0){
-		debugPrintln("buildParamMap()");
+		log.info("++ analysisUtils +buildParamMap()");
 	
 		String key="";
 		Object oValue = null;
@@ -142,16 +142,16 @@ public class AnalysisUtils {
 				key = param.getLocalName();
 				oValue = param.getText();
 				if(oValue.toString().length()>0){
-					debugPrintln(" - Key/Value: " + key + " / '" + oValue + "'");
+					log.info("++ analysisUtils + - Key/Value: " + key + " / '" + oValue + "'");
 					paramMap.put(key,oValue);
 				}else{
 					Iterator<OMElement> iterTester = param.getChildren();
 					if(iterTester.hasNext()){
 						OMElement omValue = (OMElement)param;
 						paramMap.put(key,param);
-						debugPrintln(" - Key/OMElement Value: " + key + " / " + omValue.getText()); // param.getText());
+						log.info("++ analysisUtils + - Key/OMElement Value: " + key + " / " + omValue.getText()); // param.getText());
 					}else{
-						debugPrintln(" - Key/Blank: " + key + " / '" + oValue + "'");
+						log.info("++ analysisUtils + - Key/Blank: " + key + " / '" + oValue + "'");
 						paramMap.put(key,"");	
 					}
 				}
@@ -163,7 +163,7 @@ public class AnalysisUtils {
 			return null;
 		}
 		
-		debugPrintln("buildParamMap() found " + paramMap.size() + " parameters.");
+		log.info("++ analysisUtils +buildParamMap() found " + paramMap.size() + " parameters.");
 		return paramMap;
 	}
 	
@@ -262,7 +262,7 @@ public class AnalysisUtils {
 	 */
 	protected static String[] moveFiles(String[] fileNames, long groupId, long folderId, long userId){
 		String errorMessage = "";
-		debugPrintln("moveFiles() from: local to: liferay");
+		log.info("++ analysisUtils +moveFiles() from: local to: liferay");
 		if (fileNames != null) {
 			int iMovedCount=0;
 			try {
@@ -296,7 +296,7 @@ public class AnalysisUtils {
 	 * @return - full path/name.ext as found in the array.
 	 */
 	public static String findHeaderPathName(List<String> asInputFileNames){
-		debugPrintln("findHeaderPathName()");
+		log.info("++ analysisUtils +findHeaderPathName()");
 		return findPathNameExt(asInputFileNames, "hea");
 	}
 
@@ -307,12 +307,12 @@ public class AnalysisUtils {
 	 * @return - full path/name.ext as found in the array.
 	 */
 	public static String findPathNameExt(List<String> asInputFileNames, String sExtension){
-		debugPrintln("findHeaderPathName()");
+		log.info("++ analysisUtils +findHeaderPathName()");
 		String sHeaderPathName="";
 		int iIndexPeriod=0;
 		
 		for (String sTemp : asInputFileNames) {
-			debugPrintln("- asInputFileNames: " + sTemp);
+			log.info("++ analysisUtils +- asInputFileNames: " + sTemp);
 			iIndexPeriod = sTemp.lastIndexOf(".");
 			
 			if( sExtension.contains(sTemp.substring(iIndexPeriod+1)) ){
@@ -321,13 +321,13 @@ public class AnalysisUtils {
 			}
 		}
 		
-		debugPrintln("- ssHeaderPathName: " + sHeaderPathName);
+		log.info("++ analysisUtils +++ analysisUtils +- ssHeaderPathName: " + sHeaderPathName);
 		return sHeaderPathName;
 	}
 
 	
 	private static void debugPrintln(String text){
-		System.out.println("++ analysisUtils + " + text);
+		//System.out.println("++ analysisUtils + " + text);
 		log.info("++ analysisUtils + " + text);
 	}
 
