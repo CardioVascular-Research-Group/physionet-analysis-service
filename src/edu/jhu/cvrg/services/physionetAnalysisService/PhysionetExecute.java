@@ -1029,15 +1029,15 @@ public class PhysionetExecute extends Thread{
 	}
 	
 	private void debugPrintln(String text){
-		System.out.println("-+ physionetAnalysisService.physionetExecuter println :" + text);
+//		System.out.println("-+ physionetAnalysisService.physionetExecuter println :" + text);
+		log.info("physionetAnalysisService.PhysionetExecute " + text);
 //		log.debug("-+ physionetAnalysisService.physionetExecuter + " + text);
-		log.trace("--- physionetAnalysisService.PhysionetExecute  trace :" + text);
-		log.info("---  physionetAnalysisService.PhysionetExecute  info :" + text);
-		log.debug("--- physionetAnalysisService.PhysionetExecute  debug :" + text);
-		log.warn ("--- physionetAnalysisService.PhysionetExecute  warn :" + text);
-		log.error("--- physionetAnalysisService.PhysionetExecute  error :" + text);
-		log.fatal("--- physionetAnalysisService.PhysionetExecute  fatal :" + text);
-
+//		log.trace("--- Log4J test physionetAnalysisService.PhysionetExecute  trace :" + text);
+//		log.debug("--- Log4J test physionetAnalysisService.PhysionetExecute  debug :" + text);
+//		log.info("---  Log4J test physionetAnalysisService.PhysionetExecute  info :" + text);
+//		log.warn ("--- Log4J test physionetAnalysisService.PhysionetExecute  warn :" + text);
+//		log.error("--- Log4J testphysionetAnalysisService.PhysionetExecute  error :" + text);
+//		log.fatal("--- Log4J test physionetAnalysisService.PhysionetExecute  fatal :" + text);
 	}
 
 }
