@@ -838,6 +838,7 @@ public class PhysionetExecute extends Thread{
 		return asResult;
 	}	
 
+	/** If the analysis fails, this method should return a null. **/
 	private String[] executeV2_chesnokov(){
 		debugPrintln("executeV2_chesnokov()");
 		errorMessage = "executeV2_chesnokov() failed.";
@@ -859,11 +860,13 @@ public class PhysionetExecute extends Thread{
 
 			log.info("physionetAnalysisService.PhysionetExecute - entering chesnokovV1(sDatName, sDatPath, sOutputFile)");
 			boolean status = cChesnokov.chesnokovV1(sDatName, sDatPath, sOutputFile);
-
+			
 			//*** If the analysis fails, this method should return a null.
 			log.info("physionetAnalysisService.PhysionetExecute - status: " + status);
 			if(status==false){			
 				asResult = null;
+				errorMessage = errorMessage + " " + cChesnokov.getErrorMessage();
+				log.error(errorMessage);
 				analysis.setErrorMessage(errorMessage);
 			}else{
 				//*** Reformat(if necessary) the return values as one or more output files.

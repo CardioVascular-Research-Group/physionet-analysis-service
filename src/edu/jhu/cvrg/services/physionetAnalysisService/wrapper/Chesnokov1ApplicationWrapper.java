@@ -23,7 +23,8 @@ import edu.jhu.cvrg.waveform.service.ServiceProperties;
 import edu.jhu.cvrg.waveform.service.ServiceUtils;
 
 public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
-	
+	public String errorMessage = "";
+
 	
 	public Chesnokov1ApplicationWrapper() {
 		log = Logger.getLogger(Chesnokov1ApplicationWrapper.class);
@@ -36,7 +37,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	 * @param sPath - FULL path of the header file.
 	 * @param sOutputFile - file name, without path, to use for the result
 	 * 
-	 * @return
+	 * @return true if Chesnokov C code return message starts with "lead:", rather than an error message.
 	 */	
 	public boolean chesnokovV1(String sInputFile, String sPath, String sOutputName){
 		boolean bRet = true;
@@ -66,6 +67,10 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 			
 			String stdReturn = stdReturnHandler();
 			debugPrintln(stdReturn);
+			if(!stdReturn.contains("lead:")){
+				bRet=false;
+				errorMessage = errorMessage + "; " + stdReturn;
+			}
 			
 			boolean stdError = stdErrorHandler();
 			debugPrintln("stdError returned: " + stdError);
@@ -84,6 +89,8 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 					}
 					
 				}catch(Exception e) {
+					errorMessage = errorMessage + " chesnokovV1() failed; " + e.getMessage();
+
 					e.printStackTrace();
 					bRet = false;
 				}
@@ -156,6 +163,8 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 			out.close();
 		   
         } catch (Exception ex) {
+			errorMessage = errorMessage + " chesnokovToCSV() failed; " + ex.getMessage();
+
         	ex.printStackTrace();
         }
 		return csvOutputFilename;
@@ -204,6 +213,16 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
                     + ex);
         }
     }
+
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
 
 
 	@Override

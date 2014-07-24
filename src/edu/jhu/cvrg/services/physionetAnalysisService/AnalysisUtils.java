@@ -197,7 +197,7 @@ public class AnalysisUtils {
 					tmpJobFolder.delete();
 				}
 				
-				ServiceUtils.addOMEChild("error","If analysis failed, put your message here: \"" + errorMessage + "\"",omeReturn,omFactory,omNs);
+				ServiceUtils.addOMEChild("error","Physionet algortithm (" + analysis.getAlgorithm() + ") returned the following error: \"" + analysis.getErrorMessage() + "\"",omeReturn,omFactory,omNs);
 			}
 		} catch (Exception e) {
 			errorMessage = "genericWrapperType2 failed.";
