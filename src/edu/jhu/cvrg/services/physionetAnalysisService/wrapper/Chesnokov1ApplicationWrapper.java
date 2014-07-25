@@ -41,6 +41,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	 */	
 	public boolean chesnokovV1(String sInputFile, String sPath, String sOutputName){
 		boolean bRet = true;
+		System.out.println("---------------------------");
 		System.out.println("chesnokovV1()");
 		System.out.println("- sInputFile:" + sInputFile);
 		System.out.println("- sPath:" + sPath);
@@ -69,6 +70,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 			debugPrintln(stdReturn);
 			if(!stdReturn.contains("lead:")){
 				bRet=false;
+				System.out.println("<ERROR>-- chesnokovV1() - sCommand:" + sCommand);
 				errorMessage = errorMessage + "; " + stdReturn;
 			}
 			
@@ -107,6 +109,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 		}finally{
 			ServiceUtils.deleteFile(sPath, "annotations.txt");
 		}
+		System.out.println("---------------------------");
 
 		return bRet;
 	}
