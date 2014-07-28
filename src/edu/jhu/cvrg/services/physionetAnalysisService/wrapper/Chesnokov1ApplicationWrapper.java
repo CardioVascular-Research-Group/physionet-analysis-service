@@ -21,9 +21,11 @@ import org.jdom.transform.XSLTransformer;
 import edu.jhu.cvrg.waveform.service.ApplicationWrapper;
 import edu.jhu.cvrg.waveform.service.ServiceProperties;
 import edu.jhu.cvrg.waveform.service.ServiceUtils;
+import edu.jhu.icm.ecgFormatConverter.ECGformatConverter;
 
 public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	public String errorMessage = "";
+	public boolean bAcceptableFormat=false;
 
 	
 	public Chesnokov1ApplicationWrapper() {
@@ -52,6 +54,14 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 		String[] asEnvVar = new String[0];  
 
 		try{
+			
+			testFormat( sInputFile,  asEnvVar, sPath);
+			
+			if(!bAcceptableFormat){
+				System.out.println("- bAcceptableFormat: false");
+				reformatRecordToF16( sInputFile,  sPath);
+			}
+			
 			// execute Chesnokov analysis.
 			String chesnokovOutputFilenameXml = sInputFile.substring(0, sInputFile.lastIndexOf(".") + 1) + "xml";
 
@@ -63,6 +73,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 			String chesnokovFilters = prop.getProperty(ServiceProperties.CHESNOKOV_FILTERS);
 			
 			String sCommand = wineCommand + " " + chesnokovComand + " " + chesnokovFilters + " " + sInputFile + " " + chesnokovOutputFilenameXml; // add parameters for "input file" and "output file"
+
 
 			bRet = executeCommand(sCommand, asEnvVar, sPath);
 			
@@ -172,7 +183,47 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
         }
 		return csvOutputFilename;
 	}	
+	
+	/** Test whether the input Waveform Database format is acceptable to the Chesnokov C++ code, specifically Format 16 and Format 212.
+	 *  
+	 * @param sInputFile  - file name of the WFDB (.hea) header file of the record to analyze.
+	 * @param sPath - FULL path of the header file.
+	 * 
+	 * @return - Sets class variable "bAcceptableFormat" to true if WFDB Format 16 or Format 212 false for all others.
+	 */
+	private void testFormat(String sInputFile, String[] asEnvVar, String sPath){
+		
+	    try{ 
+			String recordName = sInputFile.substring(0, sInputFile.indexOf("."));
+			String command = "wfdbdesc " + recordName;
+			boolean bNoException = executeCommand(command, asEnvVar, sPath);
+			System.out.println("-bNoException:"+ bNoException);
+			
+			stdReturnMethodHandler();
+//			String ret = stdReturnHandler();
+//			System.out.println(ret);
+			this.stdErrorHandler();
+		
+		} catch (IOException ioe) {
+			log.error("IOException Message: rdsamp " + ioe.getMessage());
+			ioe.printStackTrace();
+		} catch (Exception e) {
+			System.err.println("Exception Message: rdsamp " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
+	
+	private void reformatRecordToF16(String sInputFile,  String sPath){
+		
+		ECGformatConverter con= new ECGformatConverter();
+		ECGformatConverter.fileFormat inputFormat = ECGformatConverter.fileFormat.WFDB;
+		ECGformatConverter.fileFormat outputFormat = ECGformatConverter.fileFormat.WFDB_16;
+		int signalsRequested = 0; // zero requests all signals found.
+		
+		con.convert(inputFormat, outputFormat, sInputFile, signalsRequested, sPath, sPath);
+	}
+	
 	/**
      * Helper method to build a <code>jdom.org.Document</code> from an 
      * XML document represented as a String
@@ -230,7 +281,14 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 
 	@Override
 	protected void processReturnLine(String arg0) {
-		// TODO Auto-generated method stub
+		if(arg0.contains("Storage format: 16")){
+			System.out.println("- found Format 16");
+			bAcceptableFormat=true;
+		}
+		if(arg0.contains("Storage format: 212")){
+			System.out.println("- found Format 212");
+			bAcceptableFormat=true;
+		}
 	}
 	
 }
