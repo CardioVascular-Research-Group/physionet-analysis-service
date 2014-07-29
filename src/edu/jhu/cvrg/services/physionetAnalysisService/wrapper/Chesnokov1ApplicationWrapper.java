@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.jdom.Document;
@@ -26,7 +28,7 @@ import edu.jhu.icm.ecgFormatConverter.ECGformatConverter;
 public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	public String errorMessage = "";
 	public boolean bAcceptableFormat=false;
-
+	public List<String> signalNameList;
 	
 	public Chesnokov1ApplicationWrapper() {
 		log = Logger.getLogger(Chesnokov1ApplicationWrapper.class);
@@ -55,6 +57,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 
 		try{
 			
+			populateSignalNameList( sInputFile,  asEnvVar, sPath);
 			testFormat( sInputFile,  asEnvVar, sPath);
 			
 			if(!bAcceptableFormat){
@@ -134,6 +137,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	 * @return
 	 */
 	public String chesnokovToCSV(String chesnokovFilename, String fileAnalyzedTempName, String outputFileName, String outputPath) {
+		String[] chesSigalNameArray = {"I","II","III","aVR","aVL","aVF","v1","v2","v3","v4","v5","v6"};
 		Document xmlDoc = null;
         Document transformed = null;
         InputStream xsltIS = null;
@@ -154,8 +158,11 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
             	}
             }
             in.close();
-            
-            xmlDoc = build(sb.toString());
+            String str = sb.toString();
+			for(int s=0;s<signalNameList.size();s++){ //replace the signal names Chesnokov uses with the ones found by the Physionet signame program.
+				str = str.replaceAll("<Lead>" + chesSigalNameArray[s] + "</Lead>", "<Lead>" + signalNameList.get(s) + "</Lead>");
+			}
+            xmlDoc = build(str);
             xsltIS = this.getClass().getResourceAsStream("chesnokov_datatable.xsl");
 			xslTransformer = new XSLTransformer(xsltIS);
 			transformed = xslTransformer.transform(xmlDoc);
@@ -183,6 +190,41 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
         }
 		return csvOutputFilename;
 	}	
+
+	/** populates the variable signalNameList using the Physionet library program "signame"
+	 * 
+	 * @param sInputFile
+	 * @param asEnvVar
+	 * @param sPath
+	 */
+	private void populateSignalNameList(String sInputFile, String[] asEnvVar, String sPath){
+	    try{ 
+			String recordName = sInputFile.substring(0, sInputFile.indexOf("."));
+			String command = "signame -r " + recordName;
+			boolean bNoException = executeCommand(command, asEnvVar, sPath);
+			System.out.println("- bNoException:"+ bNoException);
+			
+//			String stdReturn = stdReturnHandler();
+			String tempLine = "";
+			int lineNumber=0;
+			signalNameList = new ArrayList<String>();
+		    while ((tempLine = stdInputBuffer.readLine()) != null) {
+		    	if (lineNumber<12){
+		    		debugPrintln("signame(); " + lineNumber + ")" + tempLine);
+		    	}
+		    	signalNameList.add(tempLine);
+		    	lineNumber++;
+		    }
+			this.stdErrorHandler();
+		
+		} catch (IOException ioe) {
+			log.error("IOException Message: rdsamp " + ioe.getMessage());
+			ioe.printStackTrace();
+		} catch (Exception e) {
+			System.err.println("Exception Message: rdsamp " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 	
 	/** Test whether the input Waveform Database format is acceptable to the Chesnokov C++ code, specifically Format 16 and Format 212.
 	 *  
@@ -197,18 +239,16 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 			String recordName = sInputFile.substring(0, sInputFile.indexOf("."));
 			String command = "wfdbdesc " + recordName;
 			boolean bNoException = executeCommand(command, asEnvVar, sPath);
-			System.out.println("-bNoException:"+ bNoException);
+			System.out.println("- bNoException:"+ bNoException);
 			
 			stdReturnMethodHandler();
-//			String ret = stdReturnHandler();
-//			System.out.println(ret);
 			this.stdErrorHandler();
 		
 		} catch (IOException ioe) {
-			log.error("IOException Message: rdsamp " + ioe.getMessage());
+			log.error("IOException Message: wfdbdesc " + ioe.getMessage());
 			ioe.printStackTrace();
 		} catch (Exception e) {
-			System.err.println("Exception Message: rdsamp " + e.getMessage());
+			System.err.println("Exception Message: wfdbdesc " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
