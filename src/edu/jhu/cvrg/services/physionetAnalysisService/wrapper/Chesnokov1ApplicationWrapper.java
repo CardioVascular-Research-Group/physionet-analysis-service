@@ -159,8 +159,8 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
             }
             in.close();
             String str = sb.toString();
-			for(int s=0;s<signalNameList.size();s++){ //replace the signal names Chesnokov uses with the ones found by the Physionet signame program.
-				str = str.replaceAll("<Lead>" + chesSigalNameArray[s] + "</Lead>", "<Lead>" + signalNameList.get(s) + "</Lead>");
+			for(int s=signalNameList.size()-1;s>=0;s--){ //replace the signal names Chesnokov uses with the ones found by the Physionet signame program.
+				str = str.replace("<Lead>" + chesSigalNameArray[s] + "</Lead>", "<Lead>" + signalNameList.get(s) + "</Lead>");
 			}
             xmlDoc = build(str);
             xsltIS = this.getClass().getResourceAsStream("chesnokov_datatable.xsl");
