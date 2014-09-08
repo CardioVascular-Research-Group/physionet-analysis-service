@@ -44,7 +44,19 @@
 			 	<xsl:value-of select="../QTIntervalResults/QTVariance"/>
 				<xsl:value-of select="','"/>
 			 	<xsl:value-of select="../QTIntervalResults/QTStandardDeviation"/>
-	         </xsl:for-each>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRIntervalCount"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRMean"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRMin"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRMax"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRVariance"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRStandardDeviation"/>			 	
+			</xsl:for-each>
         	 <xsl:text>&#10;</xsl:text> <!--  New Line -->
     	</html>
 	</xsl:template>
