@@ -46,7 +46,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
 	public boolean chesnokovV1(String sInputFile, String sPath, String sOutputName){
 		boolean bRet = true;
 		System.out.println("---------------------------");
-		System.out.println("chesnokovV1()");
+		System.out.println("chesnokovV1(), version 2.2 (Expects the WaveformChesnokov version of ecg.exe)");
 		System.out.println("- sInputFile:" + sInputFile);
 		System.out.println("- sPath:" + sPath);
 		System.out.println("- sOutputName:" + sOutputName);
@@ -190,6 +190,7 @@ public class Chesnokov1ApplicationWrapper extends ApplicationWrapper{
         }
 		return csvOutputFilename;
 	}	
+
 
 	/** populates the variable signalNameList using the Physionet library program "signame"
 	 * 
