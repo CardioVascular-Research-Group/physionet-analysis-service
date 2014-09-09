@@ -59,7 +59,19 @@
 			 	<xsl:value-of select="../HRIntervalResults/Heart_Rate_Variance"/>
 				<xsl:value-of select="','"/>
 			 	<xsl:value-of select="../HRIntervalResults/Heart_Rate_Standard_Deviation"/>
-	         </xsl:for-each>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRIntervalCount"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRMean"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRMin"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRMax"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRVariance"/>
+				<xsl:value-of select="','"/>
+			 	<xsl:value-of select="../HRIntervalResults/HRStandardDeviation"/>			 	
+			</xsl:for-each>
         	 <xsl:text>&#10;</xsl:text> <!--  New Line -->
         	 Version 2.2
     	</html>
