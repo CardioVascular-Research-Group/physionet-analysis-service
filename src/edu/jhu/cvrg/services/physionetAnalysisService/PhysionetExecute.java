@@ -2,6 +2,7 @@ package edu.jhu.cvrg.services.physionetAnalysisService;
 
 import org.apache.log4j.Logger;
 
+import edu.jhu.cvrg.analysis.vo.AnalysisVO;
 import edu.jhu.cvrg.services.physionetAnalysisService.wrapper.Chesnokov1ApplicationWrapper;
 import edu.jhu.cvrg.services.physionetAnalysisService.wrapper.WFDBApplicationWrapper;
 import edu.jhu.cvrg.waveform.service.ServiceUtils;
@@ -20,7 +21,7 @@ public class PhysionetExecute extends Thread{
 	}
 	
 	public PhysionetExecute(ThreadGroup group, AnalysisVO analysis) {
-		super(group, analysis.getUserId() + '|' + analysis.getSubjectId() + '|' + analysis.getAlgorithm().getName());
+		super(group, analysis.getJobId() + '|' + analysis.getType().getName());
 		
 		this.analysis = analysis;
 	}
@@ -36,7 +37,7 @@ public class PhysionetExecute extends Thread{
 	
 		String[] asOutputFileHandles = null;
 		//perform the analyze
-		switch (analysis.getAlgorithm()) {
+		switch (analysis.getType()) {
 			case ANN2RR: 		asOutputFileHandles = this.executeV2_ann2rr();    	break;
 			case CHESNOKOV:		asOutputFileHandles = this.executeV2_chesnokov(); 	break;
 			case NGUESS:		asOutputFileHandles = this.executeV2_nguess();	  	break;
@@ -44,19 +45,19 @@ public class PhysionetExecute extends Thread{
 			case RDSAMP:		asOutputFileHandles = this.executeV2_rdsamp();    	break;
 			case SIGAAMP:		asOutputFileHandles = this.executeV2_sigamp();    	break;
 			case SQRS:			asOutputFileHandles = this.executeV2_sqrs(true);  	break;
-			case SQRS2CSV:		asOutputFileHandles = this.executeV2_sqrs2csv();  	break;
+//			case SQRS2CSV:		asOutputFileHandles = this.executeV2_sqrs2csv();  	break;
 			case SQRS4IHR: 		asOutputFileHandles = this.executeV2_sqrs4ihr();  	break;
 			case SQRS4PNNLIST: 	asOutputFileHandles = this.executeV2_sqrs4pnnlist();break;
 			case TACH:			asOutputFileHandles = this.executeV2_tach();     	break;
 			case WQRS:			asOutputFileHandles = this.executeV2_wqrs(true);  	break;
 			case WQRS4IHR: 		asOutputFileHandles = this.executeV2_wqrs4ihr();  	break;
 			case WQRS4PNNLIST: 	asOutputFileHandles = this.executeV2_wqrs4pnnlist();break;
-			case WQRS2CSV:		asOutputFileHandles = this.executeV2_wqrs2csv();  	break;
+//			case WQRS2CSV:		asOutputFileHandles = this.executeV2_wqrs2csv();  	break;
 			case WRSAMP:		asOutputFileHandles = this.executeV2_wrsamp();    	break;
 			default: 			break;
 		}
 		
-		analysis.setOutputFileNames(asOutputFileHandles);
+//		analysis.setOutputFileNames(asOutputFileHandles);
 		
 		//TODO [VILARDO] register the job status on database
 	}

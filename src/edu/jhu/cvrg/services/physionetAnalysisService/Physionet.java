@@ -9,10 +9,12 @@ import org.apache.log4j.Logger;
 
 import com.thoughtworks.xstream.XStream;
 
-//import edu.jhu.cvrg.dbapi.dto.PhysionetMethods;
+import edu.jhu.cvrg.analysis.vo.AnalysisResultType;
+import edu.jhu.cvrg.analysis.vo.AnalysisType;
+import edu.jhu.cvrg.analysis.vo.AnalysisVO;
+import edu.jhu.cvrg.analysis.wrapper.AnalysisWrapper;
 import edu.jhu.cvrg.services.physionetAnalysisService.lookup.AlgorithmDetailLookup;
 import edu.jhu.cvrg.services.physionetAnalysisService.serviceDescriptionData.AlgorithmServiceData;
-//import edu.jhu.cvrg.waveform.model.PhysionetMethods;
 
 
 /** A collection of methods for building a generic Web Service to wrap around an arbitrary analysis algorithm..
@@ -133,7 +135,7 @@ public class Physionet {
 	 */
 	public org.apache.axiom.om.OMElement ann2rrWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.ANN2RR);	
+		return callWrapper(param0, AnalysisType.ANN2RR, AnalysisResultType.ORIGINAL_FILE);	
 	}
 
 	/** Physionet's nguess function wrapped in the Generic Analysis Service.
@@ -145,13 +147,13 @@ public class Physionet {
 	 */
 	public org.apache.axiom.om.OMElement nguessWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.NGUESS);
+		return callWrapper(param0, AnalysisType.NGUESS, AnalysisResultType.ORIGINAL_FILE);
 	}
 
 	
 	public org.apache.axiom.om.OMElement pnnlistWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 
-		return callWrapper(param0, PhysionetMethods.PNNLIST);
+		return callWrapper(param0, AnalysisType.PNNLIST, AnalysisResultType.ORIGINAL_FILE);
 	}	
 	
 
@@ -164,7 +166,7 @@ public class Physionet {
 	 */
 	public org.apache.axiom.om.OMElement rdsampWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 
-		return callWrapper(param0, PhysionetMethods.RDSAMP);
+		return callWrapper(param0, AnalysisType.RDSAMP, AnalysisResultType.ORIGINAL_FILE);
 	}
 
 	/** Physionet's sigamp function wrapped in the Generic Analysis Service.
@@ -176,7 +178,7 @@ public class Physionet {
 	 */
 	public org.apache.axiom.om.OMElement sigampWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 
-		return callWrapper(param0, PhysionetMethods.SIGAAMP);
+		return callWrapper(param0, AnalysisType.SIGAAMP, AnalysisResultType.ORIGINAL_FILE);
 	}
 
 	
@@ -189,12 +191,12 @@ public class Physionet {
 	 */
 	public org.apache.axiom.om.OMElement sqrsWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 
-		return callWrapper(param0, PhysionetMethods.SQRS);
+		return callWrapper(param0, AnalysisType.SQRS, AnalysisResultType.ORIGINAL_FILE);
 	}
 	
 	public org.apache.axiom.om.OMElement tachWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 
-		return callWrapper(param0, PhysionetMethods.TACH);
+		return callWrapper(param0, AnalysisType.TACH, AnalysisResultType.ORIGINAL_FILE);
 	}	
 	
 	
@@ -207,47 +209,47 @@ public class Physionet {
 	 */
 	public org.apache.axiom.om.OMElement wqrsWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		  
-		return callWrapper(param0, PhysionetMethods.WQRS);
+		return callWrapper(param0, AnalysisType.WQRS, AnalysisResultType.ORIGINAL_FILE);
 	}
 
 	public org.apache.axiom.om.OMElement wrsampWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.WRSAMP);	
+		return callWrapper(param0, AnalysisType.WRSAMP, AnalysisResultType.ORIGINAL_FILE);	
 	}
 	
 	public org.apache.axiom.om.OMElement chesnokovWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.CHESNOKOV);	
+		return callWrapper(param0, AnalysisType.CHESNOKOV, AnalysisResultType.ORIGINAL_FILE);	
 	}
 	
 	public org.apache.axiom.om.OMElement sqrs2csvWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.SQRS2CSV);	
+		return callWrapper(param0, AnalysisType.SQRS, AnalysisResultType.CSV_FILE);	
 	}
 	
 	public org.apache.axiom.om.OMElement wqrs2csvWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.WQRS2CSV);	
+		return callWrapper(param0, AnalysisType.WQRS, AnalysisResultType.CSV_FILE);	
 	}
 	
 	public org.apache.axiom.om.OMElement sqrs4pnnlistWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.SQRS4PNNLIST);	
+		return callWrapper(param0, AnalysisType.SQRS4PNNLIST, AnalysisResultType.CSV_FILE);	
 	}
 	
 	public org.apache.axiom.om.OMElement wqrs4pnnlistWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.WQRS4PNNLIST);	
+		return callWrapper(param0, AnalysisType.WQRS4PNNLIST, AnalysisResultType.CSV_FILE);	
 	}
 	
 	public org.apache.axiom.om.OMElement sqrs4ihrWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.SQRS4IHR);	
+		return callWrapper(param0, AnalysisType.SQRS4IHR, AnalysisResultType.CSV_FILE);	
 	}
 	
 	public org.apache.axiom.om.OMElement wqrs4ihrWrapperType2(org.apache.axiom.om.OMElement param0) throws Exception {
 		
-		return callWrapper(param0, PhysionetMethods.WQRS4IHR);	
+		return callWrapper(param0, AnalysisType.WQRS4IHR, AnalysisResultType.CSV_FILE);	
 	}
 		
 	public org.apache.axiom.om.OMElement performAnalysis(org.apache.axiom.om.OMElement e) throws Exception {
@@ -271,23 +273,29 @@ public class Physionet {
 		return util.buildAnalysisReturn("TEST", jobs, "performAnalysis");	
 	}
 	
-	
-	private OMElement callWrapper(org.apache.axiom.om.OMElement e, PhysionetMethods method) {
+	private OMElement callWrapper(org.apache.axiom.om.OMElement e, AnalysisType method, AnalysisResultType resultType) {
 		debugPrintln("Physionet." + method.getOmeName() + "() started.");
 		
 		AnalysisUtils util = new AnalysisUtils();
 		
-		AnalysisVO analysis = util.parseInputParametersType2(e, method);          //(e, method);
+		AnalysisVO analysis = util.parseInputParametersType2(e, method, resultType);
 		
-		PhysionetExecute execute = new PhysionetExecute(analysis);
+		try {
+			
+			AnalysisWrapper algorithm = analysis.getType().getWrapper().getConstructor(AnalysisVO.class).newInstance(analysis);
+			
+			algorithm.defineInputParameters();
+			algorithm.execute();
+			
+		} catch (Exception ex) {
+			System.err.println(ex.getMessage());
+		}
 		
-		//************* Calls the wrapper of the analysis algorithm. *********************
-		execute.execute();
-		//************* Return value will be stored on AnalysisVO.    *********************
 		
 		return util.buildOmeReturnType2(analysis);
 	}
 
+	
 	private void debugPrintln(String text){
 		log.info("+ physionetAnalysisService + " + text);
 	}
