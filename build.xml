@@ -49,8 +49,6 @@
 		<javac target="1.5" classpathref="project-classpath" srcdir="src" includes="edu/**/serviceDescriptionData/*" destdir="build/class" debug="true"/>
 		<javac target="1.5" classpathref="project-classpath" srcdir="src" includes="edu/**/${projectName}/**" excludes="edu/**/${projectName}/**/test/*" destdir="build/class" debug="true"/>
 		
-		<copy file="src/resources/chesnokov_datatable.xsl" todir="build/class/edu/jhu/cvrg/services/physionetAnalysisService/wrapper/" />
-		
 		<jar destfile="Aar/${projectName}.aar" basedir="build/class">
 			<metainf dir="Aar/meta-inf" />
 			<include name="**/**"/>
